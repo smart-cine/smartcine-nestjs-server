@@ -23,7 +23,7 @@ model Account {
   role     AccountRole
   name     String      @db.VarChar(255)
 
-  payment         Payment?
+  payment         Payment[]
   seats           PickSeat[]
   ratings         Rating[]
   comments        Comment[]

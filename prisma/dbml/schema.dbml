@@ -8,7 +8,7 @@ Table Account {
   password String [not null]
   role AccountRole [not null]
   name String [not null]
-  payment Payment
+  payment Payment [not null]
   seats PickSeat [not null]
   ratings Rating [not null]
   comments Comment [not null]
@@ -293,7 +293,7 @@ Ref: Perform.film_id > Film.id [delete: Cascade]
 
 Ref: Perform.cinema_room_id > CinemaRoom.id [delete: Cascade]
 
-Ref: Payment.account_id - Account.id [delete: Cascade]
+Ref: Payment.account_id > Account.id [delete: Cascade]
 
 Ref: Payment.perform_id > Perform.id [delete: Cascade]
 
