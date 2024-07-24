@@ -1,0 +1,334 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Account {
+  id Bytes [pk]
+  email String [unique, not null]
+  password String [not null]
+  role AccountRole [not null]
+  name String [not null]
+  payment Payment
+  seats PickSeat [not null]
+  ratings Rating [not null]
+  comments Comment [not null]
+  manager_account ManagerAccount
+  user_account UserAccount
+}
+
+Table UserAccount {
+  id Bytes [unique, not null]
+  account Account [not null]
+}
+
+Table ManagerAccount {
+  id Bytes [pk]
+  account Account [not null]
+  cinemas _CinemaManager [not null]
+  items Item [not null]
+  films Film [not null]
+  performs Perform [not null]
+  layouts CinemaLayout [not null]
+}
+
+Table Item {
+  id Bytes [pk]
+  parent_id Bytes
+  manager_id Bytes [not null]
+  cinema_provider_id Bytes [not null]
+  name String [not null]
+  amount Float [not null]
+  discount Float [not null, default: 0]
+  parent Item
+  manager ManagerAccount [not null]
+  cinema_provider CinemaProvider [not null]
+  items Item [not null]
+  payments _ItemPayment [not null]
+}
+
+Table Tag {
+  name String [pk]
+  films _FilmTag [not null]
+}
+
+Table Film {
+  id Bytes [pk]
+  manager_id Bytes [not null]
+  cinema_provider_id Bytes [not null]
+  title String [not null]
+  director String [not null]
+  description String [not null]
+  release_date DateTime [not null]
+  country String [not null]
+  restrict_age Int [not null, default: 0]
+  duration Int [not null]
+  picture_url String [not null]
+  background_url String [not null]
+  trailer_url String [not null]
+  language String [not null]
+  manager ManagerAccount [not null]
+  cinema_provider CinemaProvider [not null]
+  ratings Rating [not null]
+  tags _FilmTag [not null]
+  comments Comment [not null]
+  performs Perform [not null]
+}
+
+Table PickSeat {
+  id Bytes [pk]
+  account_id Bytes [not null]
+  perform_id Bytes [not null]
+  code String [not null]
+  account Account [not null]
+  perform Perform [not null]
+
+  indexes {
+    (account_id, perform_id, code) [unique]
+  }
+}
+
+Table Perform {
+  id Bytes [pk]
+  manager_id Bytes [not null]
+  film_id Bytes [not null]
+  cinema_room_id Bytes [not null]
+  start_time DateTime [not null]
+  end_time DateTime [not null]
+  translate_type PerformTranslateType [not null, default: 'NONE']
+  view_type PerformViewType [not null, default: 'V2D']
+  price Float [not null]
+  manager ManagerAccount [not null]
+  film Film [not null]
+  room CinemaRoom [not null]
+  payments Payment [not null]
+  seats PickSeat [not null]
+}
+
+Table Payment {
+  id Bytes [pk]
+  account_id Bytes [unique, not null]
+  perform_id Bytes [not null]
+  date_created DateTime [default: `now()`, not null]
+  date_expired DateTime [not null]
+  status PaymentStatus [not null, default: 'PENDING']
+  account Account [not null]
+  perform Perform [not null]
+  items _ItemPayment [not null]
+}
+
+Table CinemaProvider {
+  id Bytes [pk]
+  name String [not null]
+  logo_url String [not null]
+  background_url String [not null]
+  ratings Rating [not null]
+  comments Comment [not null]
+  cinemas Cinema [not null]
+  items Item [not null]
+  films Film [not null]
+}
+
+Table Cinema {
+  id Bytes [pk]
+  name String [not null]
+  provider_id Bytes [not null]
+  manager_id Bytes [not null]
+  address String [not null]
+  provider CinemaProvider [not null]
+  rooms CinemaRoom [not null]
+  managers _CinemaManager [not null]
+}
+
+Table CinemaRoom {
+  id Bytes [pk]
+  name String [not null]
+  type CinemaRoomType [not null]
+  cinema_id Bytes [not null]
+  cinema_layout_id Bytes [not null]
+  cinema Cinema [not null]
+  cinema_layout CinemaLayout [not null]
+  performs Perform [not null]
+}
+
+Table CinemaLayout {
+  id Bytes [pk]
+  manager_id Bytes [not null]
+  type CinemaLayoutType [not null]
+  data String [not null]
+  cinema_rooms CinemaRoom [not null]
+  manager ManagerAccount [not null]
+}
+
+Table Comment {
+  id Bytes [pk]
+  parent_id Bytes
+  account_id Bytes [not null]
+  dest_id Bytes [not null]
+  body String [not null]
+  type CommentType [not null]
+  parent Comment
+  account Account [not null]
+  ratings Rating [not null]
+  comments Comment [not null]
+  dest_cinema_provider CinemaProvider [not null]
+  dest_film Film [not null]
+}
+
+Table Rating {
+  id Bytes [pk]
+  account_id Bytes [not null]
+  dest_id Bytes [not null]
+  type RatingType [not null]
+  score Float [not null]
+  account Account [not null]
+  dest_cinema_provider CinemaProvider [not null]
+  dest_film Film [not null]
+  dest_comment Comment [not null]
+
+  indexes {
+    (account_id, dest_id) [unique]
+  }
+}
+
+Table _FilmTag {
+  film_id Bytes [not null]
+  tag_id String [not null]
+  film Film [not null]
+  tag Tag [not null]
+
+  indexes {
+    (film_id, tag_id) [pk]
+  }
+}
+
+Table _ItemPayment {
+  item_id Bytes [not null]
+  payment_id Bytes [not null]
+  item Item [not null]
+  payment Payment [not null]
+
+  indexes {
+    (item_id, payment_id) [pk]
+  }
+}
+
+Table _CinemaManager {
+  cinema_id Bytes [not null]
+  manager_id Bytes [not null]
+  cinema Cinema [not null]
+  manager ManagerAccount [not null]
+
+  indexes {
+    (cinema_id, manager_id) [pk]
+  }
+}
+
+Enum CinemaRoomType {
+  NORMAL
+  VIP
+  DELUXE
+}
+
+Enum CinemaLayoutType {
+  RECTANGLE
+  DYNAMIC
+}
+
+Enum CommentType {
+  FILM
+  ACCOUNT
+  COMMENT
+}
+
+Enum AccountRole {
+  USER
+  MANAGER
+  SUPERADMIN
+}
+
+Enum PaymentStatus {
+  PENDING
+  RESOLVED
+}
+
+Enum PerformTranslateType {
+  SUBTITLE
+  DUBBING
+  NONE
+}
+
+Enum PerformViewType {
+  V2D
+  V3D
+  IMAX
+}
+
+Enum RatingType {
+  FILM
+  CINEMA
+  COMMENT
+}
+
+Ref: UserAccount.id - Account.id [delete: Cascade]
+
+Ref: ManagerAccount.id - Account.id [delete: Cascade]
+
+Ref: Item.parent_id - Item.id [delete: No Action]
+
+Ref: Item.manager_id > ManagerAccount.id [delete: Cascade]
+
+Ref: Item.cinema_provider_id > CinemaProvider.id [delete: Cascade]
+
+Ref: Film.manager_id > ManagerAccount.id [delete: Cascade]
+
+Ref: Film.cinema_provider_id > CinemaProvider.id [delete: Cascade]
+
+Ref: PickSeat.account_id > Account.id [delete: Cascade]
+
+Ref: PickSeat.perform_id > Perform.id [delete: Cascade]
+
+Ref: Perform.manager_id > ManagerAccount.id [delete: Cascade]
+
+Ref: Perform.film_id > Film.id [delete: Cascade]
+
+Ref: Perform.cinema_room_id > CinemaRoom.id [delete: Cascade]
+
+Ref: Payment.account_id - Account.id [delete: Cascade]
+
+Ref: Payment.perform_id > Perform.id [delete: Cascade]
+
+Ref: Cinema.provider_id > CinemaProvider.id [delete: Cascade]
+
+Ref: CinemaRoom.cinema_id > Cinema.id [delete: Cascade]
+
+Ref: CinemaRoom.cinema_layout_id > CinemaLayout.id [delete: Cascade]
+
+Ref: CinemaLayout.manager_id > ManagerAccount.id [delete: Cascade]
+
+Ref: Comment.dest_id - Comment.id [delete: No Action]
+
+Ref: Comment.account_id > Account.id [delete: Cascade]
+
+Ref: Comment.dest_id > CinemaProvider.id [delete: Cascade]
+
+Ref: Comment.dest_id > Film.id [delete: Cascade]
+
+Ref: Rating.account_id > Account.id [delete: Cascade]
+
+Ref: Rating.dest_id > CinemaProvider.id [delete: Cascade]
+
+Ref: Rating.dest_id > Film.id [delete: Cascade]
+
+Ref: Rating.dest_id > Comment.id [delete: Cascade]
+
+Ref: _FilmTag.film_id > Film.id [delete: Cascade]
+
+Ref: _FilmTag.tag_id > Tag.name [delete: Cascade]
+
+Ref: _ItemPayment.item_id > Item.id [delete: Cascade]
+
+Ref: _ItemPayment.payment_id > Payment.id [delete: Cascade]
+
+Ref: _CinemaManager.cinema_id > Cinema.id [delete: Cascade]
+
+Ref: _CinemaManager.manager_id > ManagerAccount.id [delete: Cascade]
