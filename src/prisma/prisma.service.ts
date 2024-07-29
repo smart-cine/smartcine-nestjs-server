@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaClient, Prisma } from '@prisma/client';
-
+import { withOptimize } from '@prisma/extension-optimize';
 @Injectable()
 export class PrismaService
   extends PrismaClient<Prisma.PrismaClientOptions, Prisma.LogLevel>
@@ -38,6 +38,7 @@ export class PrismaService
 
   async onModuleInit() {
     await this.$connect();
+    this.$extends(withOptimize({ enable: true }));
     // this.$use(this.categorySoftDeleteMiddleware);
     // this.$use(this.categoryFindMiddleware);
     // this.$extends({
