@@ -3,8 +3,9 @@ import { CreateFilmDto } from './dto/CreateFilm.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateFilmDto } from './dto/UpdateFilm.dto';
 import { genId } from 'src/shared/genId';
-import { randomBytes } from 'crypto';
-
+import { binaryToUuid } from 'src/utils/uuid';
+import { genPaginationResponse } from 'src/pagination/pagination.util';
+import { PaginationQueryDto } from 'src/pagination/PaginationQuery.dto';
 @Injectable()
 export class FilmService {
   constructor(private prismaService: PrismaService) {}
@@ -15,7 +16,7 @@ export class FilmService {
         data: {
           id: film_id,
           manager: {
-            connect: { id: randomBytes(16) },
+            connect: { id: genId() },
           },
           cinema_provider: {
             connect: { id: body.cinema_provider_id },
@@ -48,17 +49,39 @@ export class FilmService {
   deleteItem(id: Buffer) {
     this.prismaService.film.delete({ where: { id } });
   }
-  getItem(id: Buffer) {
-    this.prismaService.film.findUnique({ where: { id } });
+  async getItem(id: Buffer) {
+    const film = await this.prismaService.film.findUniqueOrThrow({
+      where: { id },
+    });
+    return {
+      ...film,
+      id: binaryToUuid(film.id),
+      manager_id: binaryToUuid(film.manager_id),
+      cinema_provider_id: binaryToUuid(film.cinema_provider_id),
+    };
   }
-  async getItems() {
-    return this.prismaService.film.findMany();
+  async getItems(pagination: PaginationQueryDto) {
+    const response = await genPaginationResponse({
+      prisma: this.prismaService,
+      modelName: 'film',
+      pagination,
+    });
+
+    return {
+      data: response.data.map((film) => ({
+        ...film,
+        id: binaryToUuid(film.id),
+        manager_id: binaryToUuid(film.manager_id),
+        cinema_provider_id: binaryToUuid(film.cinema_provider_id),
+      })),
+      pagination: response.pagination,
+    };
   }
   updateItem(id: Buffer, body: UpdateFilmDto) {
     return this.prismaService.film.update({
       where: { id },
       data: {
-        manager: { connect: { id: randomBytes(16) } },
+        manager: { connect: { id: genId() } },
         cinema_provider: { connect: { id: body.cinema_provider_id } },
         title: body.title,
         director: body.director,
