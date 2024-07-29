@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginAccount } from './dto/LoginAccount.dto';
 import { RegisterAccount } from './dto/RegisterAccount.dto';
 import { genId } from 'src/shared/genId';
-import { md5 } from 'src/utils/md5';
+import { hash } from 'src/utils/hash';
 
 @Injectable()
 export class AccountService {
@@ -14,7 +14,7 @@ export class AccountService {
       data: {
         id: genId(),
         email: data.email,
-        password: md5(data.password),
+        password: await hash(data.password),
         role: data.role,
         name: data.name,
       },
@@ -27,7 +27,7 @@ export class AccountService {
         email: data.email,
       },
     });
-    if (account.password === md5(data.password)) {
+    if (account.password === (await hash(data.password))) {
       return {
         account,
       };
