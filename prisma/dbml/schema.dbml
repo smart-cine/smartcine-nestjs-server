@@ -9,7 +9,7 @@ Table account {
   role AccountRole [not null]
   name String [not null]
   payment payment [not null]
-  seats pickseat [not null]
+  pickseats pickseat [not null]
   ratings rating [not null]
   comments comment [not null]
   manager_account manageraccount
@@ -78,12 +78,13 @@ Table pickseat {
   id Bytes [pk]
   account_id Bytes [not null]
   perform_id Bytes [not null]
-  code String [not null]
+  layout_seat_id Bytes [not null]
   account account [not null]
   perform perform [not null]
+  layout_seat cinemalayoutseat [not null]
 
   indexes {
-    (account_id, perform_id, code) [unique]
+    (account_id, perform_id, layout_seat_id) [unique]
   }
 }
 
@@ -101,7 +102,7 @@ Table perform {
   film film [not null]
   room cinemaroom [not null]
   payments payment [not null]
-  seats pickseat [not null]
+  pickseats pickseat [not null]
 }
 
 Table payment {
@@ -152,10 +153,37 @@ Table cinemaroom {
 Table cinemalayout {
   id Bytes [pk]
   manager_id Bytes [not null]
-  type CinemaLayoutType [not null]
-  data String [not null]
-  cinema_rooms cinemaroom [not null]
+  rows Int [not null]
+  columns Int [not null]
+  rooms cinemaroom [not null]
   manager manageraccount [not null]
+  layout_groups cinemalayoutgroup [not null]
+  layout_seats cinemalayoutseat [not null]
+}
+
+Table cinemalayoutgroup {
+  id Bytes [pk]
+  layout_id Bytes [not null]
+  name String [not null]
+  color Int [not null]
+  price Decimal [not null]
+  layout cinemalayout [not null]
+  layout_seats cinemalayoutseat [not null]
+}
+
+Table cinemalayoutseat {
+  id Bytes [pk]
+  layout_id Bytes [not null]
+  group_id Bytes
+  code String [not null]
+  available Boolean [not null, default: true]
+  layout cinemalayout [not null]
+  group cinemalayoutgroup
+  layout_seats pickseat [not null]
+
+  indexes {
+    (layout_id, code) [unique]
+  }
 }
 
 Table comment {
@@ -233,11 +261,6 @@ Enum CinemaRoomType {
   DELUXE
 }
 
-Enum CinemaLayoutType {
-  RECTANGLE
-  DYNAMIC
-}
-
 Enum CommentType {
   FILM
   CINEMA_PROVIDER
@@ -291,6 +314,8 @@ Ref: pickseat.account_id > account.id [delete: Cascade]
 
 Ref: pickseat.perform_id > perform.id [delete: Cascade]
 
+Ref: pickseat.layout_seat_id > cinemalayoutseat.id [delete: Cascade]
+
 Ref: perform.manager_id > manageraccount.id [delete: Cascade]
 
 Ref: perform.film_id > film.id [delete: Cascade]
@@ -308,6 +333,12 @@ Ref: cinemaroom.cinema_id > cinema.id [delete: Cascade]
 Ref: cinemaroom.cinema_layout_id > cinemalayout.id [delete: Cascade]
 
 Ref: cinemalayout.manager_id > manageraccount.id [delete: Cascade]
+
+Ref: cinemalayoutgroup.layout_id > cinemalayout.id [delete: Cascade]
+
+Ref: cinemalayoutseat.layout_id > cinemalayout.id [delete: Cascade]
+
+Ref: cinemalayoutseat.group_id > cinemalayoutgroup.id [delete: Cascade]
 
 Ref: comment.account_id > account.id [delete: Cascade]
 

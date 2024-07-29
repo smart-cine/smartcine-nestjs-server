@@ -1,7 +1,6 @@
 import {
   PrismaClient,
   AccountRole,
-  CinemaLayoutType,
   CinemaRoomType,
   CommentType,
   PerformTranslateType,
@@ -12,7 +11,6 @@ import { randomBytes, randomInt } from 'crypto';
 import { faker } from '@faker-js/faker';
 import { hash } from 'src/utils/hash';
 import { genId } from 'src/shared/genId';
-import { binaryToUuid } from 'src/utils/uuid';
 
 const client = new PrismaClient({
   log: [
@@ -33,7 +31,7 @@ client
     console.log('Connected to the database');
     // create account
 
-    const userId = randomBytes(16);
+    const userId = genId();
     const user = await client.account.create({
       data: {
         id: userId,
@@ -47,7 +45,7 @@ client
       },
     });
 
-    const managerId = randomBytes(16);
+    const managerId = genId();
     const manager = await client.account.create({
       data: {
         id: managerId,
@@ -65,7 +63,7 @@ client
       Array.from({ length: 100 }).map(async () =>
         client.cinemaProvider.create({
           data: {
-            id: randomBytes(16),
+            id: genId(),
             name: faker.company.name(),
             logo_url: faker.image.url(),
             background_url: faker.image.url(),
@@ -78,7 +76,7 @@ client
       Array.from({ length: 100 }).map(async () =>
         client.film.create({
           data: {
-            id: randomBytes(16),
+            id: genId(),
             manager: {
               connect: { id: managerId },
             },
@@ -107,7 +105,7 @@ client
       Array.from({ length: 100 }).map(async () =>
         client.cinema.create({
           data: {
-            id: randomBytes(16),
+            id: genId(),
             provider: {
               connect: {
                 id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
@@ -126,44 +124,77 @@ client
     }
 
     const cinema_layouts = await Promise.all(
-      Array.from({ length: 100 }).map(async () => {
-        const cols = randomInt(5, 15);
-        const rows = randomInt(5, 10);
-        const groups = Array.from({ length: randomInt(1, 5) }).map(() => ({
-          id: binaryToUuid(genId()),
-          name: faker.lorem.word(),
-          color: faker.internet.color(),
-          price: faker.finance.amount({
-            min: 10000,
-            max: 100000,
-          }),
-        }));
-        const seats = Array.from({ length: cols * rows }).map(() => {
-          const type = faker.helpers.enumValue(SeatType);
-          return {
-            type,
-            group_id:
-              type === SeatType.NOT_EMTPY
-                ? groups[randomInt(0, groups.length)].id
-                : null,
-          };
-        });
+      Array.from({ length: 10 }).map(async () => {
+        const layout_id = genId();
+        const rows = randomInt(5, 15);
+        const columns = randomInt(5, 10);
 
-        return client.cinemaLayout.create({
+        const layout = await client.cinemaLayout.create({
           data: {
-            id: randomBytes(16),
+            id: layout_id,
             manager: {
               connect: { id: manager.id },
             },
-            type: CinemaLayoutType.RECTANGLE,
-            data: JSON.stringify({
-              cols,
-              rows,
-              groups,
-              seats,
-            }),
+            rows,
+            columns,
           },
         });
+
+        const grouptypes = [
+          'Ghế thường',
+          'Ghế VIP',
+          'Ghế đôi',
+          'Vùng trung tâm',
+        ];
+        const groups = await Promise.all(
+          Array.from({ length: 4 }).map(() =>
+            client.cinemaLayoutGroup.create({
+              data: {
+                id: genId(),
+                layout: {
+                  connect: {
+                    id: layout_id,
+                  },
+                },
+                name: grouptypes.pop(),
+                color: faker.helpers.rangeToNumber({ min: 0, max: 255 }),
+                price: faker.finance.amount({
+                  min: 10000,
+                  max: 100000,
+                }),
+              },
+            }),
+          ),
+        );
+
+        const seats = await Promise.all(
+          Array.from({ length: columns * rows }).map((_, i) => {
+            const available = Boolean(
+              faker.helpers.rangeToNumber({ min: 0, max: 1 }),
+            );
+            return client.cinemaLayoutSeat.create({
+              data: {
+                id: genId(),
+                layout: {
+                  connect: {
+                    id: layout_id,
+                  },
+                },
+                group: available
+                  ? {
+                      connect: {
+                        id: groups[randomInt(0, groups.length)].id,
+                      },
+                    }
+                  : undefined,
+                available,
+                code: `${String.fromCharCode(65 + Math.floor(i / columns))}${(i % columns) + 1}`,
+              },
+            });
+          }),
+        );
+
+        return layout;
       }),
     );
 
@@ -171,7 +202,7 @@ client
       Array.from({ length: 100 }).map(async () =>
         client.cinemaRoom.create({
           data: {
-            id: randomBytes(16),
+            id: genId(),
             cinema: {
               connect: { id: cinemas[randomInt(0, cinemas.length)].id },
             },
@@ -187,7 +218,7 @@ client
       ),
     );
 
-    const comment_id = randomBytes(16);
+    const comment_id = genId();
     const comment = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.comment.create({
@@ -210,7 +241,7 @@ client
       Array.from({ length: 100 }).map(async () =>
         client.item.create({
           data: {
-            id: randomBytes(16),
+            id: genId(),
             manager: {
               connect: { id: managerId },
             },
@@ -238,7 +269,7 @@ client
       Array.from({ length: 100 }).map(async () =>
         client.perform.create({
           data: {
-            id: randomBytes(16),
+            id: genId(),
             manager: {
               connect: { id: managerId },
             },
@@ -265,7 +296,7 @@ client
       Array.from({ length: 100 }).map(async () =>
         client.rating.create({
           data: {
-            id: randomBytes(16),
+            id: genId(),
             account: {
               connect: { id: userId },
             },
