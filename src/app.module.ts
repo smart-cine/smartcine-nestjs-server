@@ -9,17 +9,24 @@ import { RedisModule } from './redis/redis.module';
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { RolesGuard } from './account/guards/roles.guard';
 import { ResponseInterceptor } from './response/Response.intercept';
+import { PickseatModule } from './pickseat/pickseat.module';
+import { PerformModule } from './perform/perform.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      ignoreEnvFile: true,
+    }),
     // CacheModule.registerAsync(RedisOptions),
     PrismaModule,
     RedisModule,
     JwtModule.registerAsync(JwtOptions),
-    JwtModule,
     AccountModule,
     FilmModule,
+    PickseatModule,
+    PerformModule,
   ],
   providers: [
     {
