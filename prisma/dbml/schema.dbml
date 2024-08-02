@@ -155,8 +155,8 @@ Table cinemalayout {
   manager_id Bytes [not null]
   rows Int [not null]
   columns Int [not null]
-  rooms cinemaroom [not null]
   manager manageraccount [not null]
+  rooms cinemaroom [not null]
   layout_groups cinemalayoutgroup [not null]
   layout_seats cinemalayoutseat [not null]
 }
