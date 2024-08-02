@@ -1,22 +1,29 @@
 import { binaryToUuid } from 'src/utils/uuid';
 import { PaginationQueryDto } from './PaginationQuery.dto';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
 
-export async function genPaginationResponse<
-  ModelName extends Prisma.TypeMap['meta']['modelProps'],
->({
-  prisma,
-  modelName,
-  pagination,
-  opts = {},
+export function genPaginationResponse({
+  items,
+  paginationQuery,
+  total,
 }: {
-  prisma: PrismaService;
-  modelName: ModelName;
-  pagination: PaginationQueryDto;
-  opts?: Record<string, any>;
+  items: any[];
+  paginationQuery: PaginationQueryDto;
+  total: number;
 }) {
-  const parsedPagination = parsePaginationQuery(pagination);
+  const parsedPagination = parsePaginationQuery(paginationQuery);
+  const hasNext = items.length > parsedPagination.limit;
+
+  return {
+    total,
+    limit: parsedPagination.limit,
+    next_page:
+      !parsedPagination.cursor && hasNext ? parsedPagination.page + 1 : null,
+    next_cursor: hasNext ? binaryToUuid(items[items.length - 1 - 1].id) : null,
+  };
+}
+
+export function generatePaginationParams(paginationQuery: PaginationQueryDto) {
+  const parsedPagination = parsePaginationQuery(paginationQuery);
   const searchOrderOptions = {
     orderBy: Object.fromEntries(
       parsedPagination.sort.map((sort) => [sort.field, sort.by]),
@@ -31,49 +38,23 @@ export async function genPaginationResponse<
         }
       : undefined,
   };
-  console.log(JSON.stringify(searchOrderOptions));
 
-  if (!prisma[modelName]) {
-    throw new Error(`Model "${modelName}" not found in PrismaService`);
+  if (parsedPagination.cursor) {
+    return {
+      take: parsedPagination.limit + 1,
+      skip: 1,
+      cursor: {
+        id: parsedPagination.cursor,
+      },
+      ...searchOrderOptions,
+    };
+  } else {
+    return {
+      take: parsedPagination.limit + 1,
+      skip: (parsedPagination.page - 1) * parsedPagination.limit,
+      ...searchOrderOptions,
+    };
   }
-
-  const items = parsedPagination.cursor
-    ? // @ts-ignore
-      await prisma[modelName].findMany({
-        take: parsedPagination.limit + 1,
-        skip: 1,
-        cursor: {
-          id: parsedPagination.cursor,
-        },
-        ...searchOrderOptions,
-        ...opts,
-      })
-    : // @ts-ignore
-      await prisma[modelName].findMany({
-        take: parsedPagination.limit + 1,
-        skip: (parsedPagination.page - 1) * parsedPagination.limit,
-        ...searchOrderOptions,
-        ...opts,
-      });
-
-  // because we fetch 1 more item to check if there is next page
-  const hasNext = items.length > parsedPagination.limit;
-
-  return {
-    data: items.slice(0, parsedPagination.limit) as Awaited<
-      ReturnType<(typeof prisma)[typeof modelName]['findMany']>
-    >,
-    pagination: {
-      // @ts-ignore
-      total: await prisma[modelName].count(),
-      limit: pagination.limit,
-      next_page: !pagination.cursor && hasNext ? pagination.page + 1 : null,
-      next_cursor: hasNext
-        ? binaryToUuid(items[items.length - 1 - 1].id)
-        : null,
-      // prev_cursor: binaryToUuid(items[0].id),
-    },
-  };
 }
 
 export function parsePaginationQuery(pagination: PaginationQueryDto): {
