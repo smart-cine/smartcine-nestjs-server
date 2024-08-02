@@ -1,11 +1,12 @@
 import { Transform } from 'class-transformer';
 import { uuidToBinary } from './uuid';
 
-export function StringToBuffer() {
+export function StringToBuffer({ nullable = false } = {}) {
   return Transform(({ value }) => {
     if (typeof value === 'string') {
       return uuidToBinary(value);
     }
-    throw new Error('Value must be a string!');
+
+    if (!nullable) throw new Error('Value must be a string!');
   });
 }
