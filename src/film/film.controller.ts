@@ -23,7 +23,6 @@ export class FilmController {
   }
 
   @Get(':id')
-  // @Roles([AccountRole.USER])
   get(@Param() params: IdDto) {
     return this.service.getItem(params.id);
   }

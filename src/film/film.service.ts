@@ -54,10 +54,20 @@ export class FilmService {
       where: { id },
     });
     return {
-      ...film,
       id: binaryToUuid(film.id),
       manager_id: binaryToUuid(film.manager_id),
       cinema_provider_id: binaryToUuid(film.cinema_provider_id),
+      title: film.title,
+      director: film.director,
+      description: film.description,
+      release_date: film.release_date,
+      country: film.country,
+      restrict_age: film.restrict_age,
+      duration: film.duration,
+      picture_url: film.picture_url,
+      background_url: film.background_url,
+      trailer_url: film.trailer_url,
+      language: film.language,
     };
   }
   async getItems(pagination: PaginationQueryDto) {
@@ -69,10 +79,20 @@ export class FilmService {
 
     return {
       data: response.data.map((film) => ({
-        ...film,
         id: binaryToUuid(film.id),
         manager_id: binaryToUuid(film.manager_id),
         cinema_provider_id: binaryToUuid(film.cinema_provider_id),
+        title: film.title,
+        director: film.director,
+        description: film.description,
+        release_date: film.release_date,
+        country: film.country,
+        restrict_age: film.restrict_age,
+        duration: film.duration,
+        picture_url: film.picture_url,
+        background_url: film.background_url,
+        trailer_url: film.trailer_url,
+        language: film.language,
       })),
       pagination: response.pagination,
     };
