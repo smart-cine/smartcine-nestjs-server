@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import RedisClient from '@redis/client/dist/lib/client';
-import { REDIS_DATABASE } from './redis.constant';
 
 @Injectable()
 export class RedisService
@@ -22,9 +21,8 @@ export class RedisService
       // password,
       // TODO: set password for redis docker
       url: `redis://${host}:${port}`,
-      database: REDIS_DATABASE.SESSION,
     });
-    this.secret = configService.get<string>('REDIS_SECRET');
+    this.secret = configService.get<string>('REDIS_SECRET')!;
   }
 
   onModuleInit() {
@@ -42,6 +40,19 @@ export class RedisService
   }
 
   hget(field: string) {
-    return super.sendCommand<string>(['HGET', this.secret, field]);
+    console.log(['HGET', this.secret, field]);
+    return super.sendCommand<string>(['HGET', this.secret, field]) as Promise<
+      string | null
+    >;
+  }
+
+  async isBlacklisted(token: string) {
+    return (
+      (await this.sendCommand<string>(['EXISTS', `loggedout:${token}`])) === '1'
+    );
+  }
+
+  async blacklist(token: string) {
+    return this.sendCommand<string>(['SET', `loggedout:${token}`, '']);
   }
 }
