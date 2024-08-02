@@ -118,11 +118,6 @@ client
       ),
     );
 
-    enum SeatType {
-      EMPTY = 0,
-      NOT_EMTPY = 1,
-    }
-
     const cinema_layouts = await Promise.all(
       Array.from({ length: 10 }).map(async () => {
         const layout_id = genId();
@@ -156,7 +151,7 @@ client
                     id: layout_id,
                   },
                 },
-                name: grouptypes.pop(),
+                name: grouptypes.pop()!,
                 color: faker.helpers.rangeToNumber({ min: 0, max: 255 }),
                 price: faker.finance.amount({
                   min: 10000,

@@ -204,8 +204,8 @@ model CinemaLayout {
   rows       Int   @db.Int // Number of rows
   columns    Int   @db.Int // Number of columns
 
-  rooms         CinemaRoom[]
   manager       ManagerAccount      @relation(fields: [manager_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rooms         CinemaRoom[]
   layout_groups CinemaLayoutGroup[]
   layout_seats  CinemaLayoutSeat[]
 
