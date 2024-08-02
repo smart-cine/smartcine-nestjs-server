@@ -46,12 +46,14 @@ export async function genPaginationResponse<
           id: parsedPagination.cursor,
         },
         ...searchOrderOptions,
+        ...opts,
       })
     : // @ts-ignore
       await prisma[modelName].findMany({
         take: parsedPagination.limit + 1,
         skip: (parsedPagination.page - 1) * parsedPagination.limit,
         ...searchOrderOptions,
+        ...opts,
       });
 
   // because we fetch 1 more item to check if there is next page
