@@ -4,7 +4,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateFilmDto } from './dto/UpdateFilm.dto';
 import { genId } from 'src/shared/genId';
 import { binaryToUuid } from 'src/utils/uuid';
-import { genPaginationResponse } from 'src/pagination/pagination.util';
+import {
+  generatePaginationParams,
+  genPaginationResponse,
+} from 'src/pagination/pagination.util';
 import { PaginationQueryDto } from 'src/pagination/PaginationQuery.dto';
 @Injectable()
 export class FilmService {
@@ -52,11 +55,19 @@ export class FilmService {
   async getItem(id: Buffer) {
     const film = await this.prismaService.film.findUniqueOrThrow({
       where: { id },
+      include: {
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
+      },
     });
     return {
       id: binaryToUuid(film.id),
       manager_id: binaryToUuid(film.manager_id),
       cinema_provider_id: binaryToUuid(film.cinema_provider_id),
+      tags: film.tags.map((tag) => tag.tag.name),
       title: film.title,
       director: film.director,
       description: film.description,
@@ -71,17 +82,28 @@ export class FilmService {
     };
   }
   async getItems(pagination: PaginationQueryDto) {
-    const response = await genPaginationResponse({
-      prisma: this.prismaService,
-      modelName: 'film',
-      pagination,
+    const items = await this.prismaService.film.findMany({
+      ...generatePaginationParams(pagination),
+      include: {
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
+      },
+    });
+    const paginationResponse = genPaginationResponse({
+      items,
+      paginationQuery: pagination,
+      total: await this.prismaService.film.count(),
     });
 
     return {
-      data: response.data.map((film) => ({
+      data: items.map((film) => ({
         id: binaryToUuid(film.id),
         manager_id: binaryToUuid(film.manager_id),
         cinema_provider_id: binaryToUuid(film.cinema_provider_id),
+        tags: film.tags.map((tag) => tag.tag.name),
         title: film.title,
         director: film.director,
         description: film.description,
@@ -94,7 +116,7 @@ export class FilmService {
         trailer_url: film.trailer_url,
         language: film.language,
       })),
-      pagination: response.pagination,
+      pagination: paginationResponse,
     };
   }
   updateItem(id: Buffer, body: UpdateFilmDto) {
