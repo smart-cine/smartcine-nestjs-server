@@ -14,16 +14,16 @@ import { genId } from 'src/shared/genId';
 
 const client = new PrismaClient({
   log: [
-    {
-      emit: 'event',
-      level: 'query',
-    },
+    // {
+    //   emit: 'event',
+    //   level: 'query',
+    // },
   ],
 });
 
-client.$on('query', async (e) => {
-  console.log(`${e.query} ${e.params}`);
-});
+// client.$on('query', async (e) => {
+//   console.log(`${e.query} ${e.params}`);
+// });
 
 client
   .$connect()
@@ -31,6 +31,7 @@ client
     console.log('Connected to the database');
     // create account
 
+    console.log('Creating account');
     const userId = genId();
     const user = await client.account.create({
       data: {
@@ -45,6 +46,7 @@ client
       },
     });
 
+    console.log('Creating manager');
     const managerId = genId();
     const manager = await client.account.create({
       data: {
@@ -59,6 +61,7 @@ client
       },
     });
 
+    console.log('Creating cinema provider');
     const cinemaProviders = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.cinemaProvider.create({
@@ -72,6 +75,7 @@ client
       ),
     );
 
+    console.log('Creating film');
     const films = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.film.create({
@@ -101,6 +105,7 @@ client
       ),
     );
 
+    console.log('Creating cinema');
     const cinemas = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.cinema.create({
@@ -118,6 +123,7 @@ client
       ),
     );
 
+    console.log('Creating cinema layout');
     const cinema_layouts = await Promise.all(
       Array.from({ length: 10 }).map(async () => {
         const layout_id = genId();
@@ -193,6 +199,7 @@ client
       }),
     );
 
+    console.log('Creating cinema room');
     const rooms = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.cinemaRoom.create({
@@ -213,17 +220,17 @@ client
       ),
     );
 
-    const comment_id = genId();
+    console.log('Creating comment');
     const comment = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
+      Array.from({ length: 100 }).map(async (_, i) =>
         client.comment.create({
           data: {
-            id: comment_id,
+            id: genId(),
             account: {
               connect: { id: userId },
             },
             dest_film: {
-              connect: { id: films[randomInt(0, films.length)].id },
+              connect: { id: films[i].id },
             },
             body: faker.lorem.paragraph(),
             type: CommentType.FILM,
@@ -232,6 +239,7 @@ client
       ),
     );
 
+    console.log('Creating item');
     const item = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.item.create({
@@ -260,6 +268,7 @@ client
       ),
     );
 
+    console.log('Creating perform');
     const perform = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.perform.create({
@@ -287,8 +296,9 @@ client
       ),
     );
 
+    console.log('Creating rating');
     const rating = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
+      Array.from({ length: 100 }).map(async (_, index) =>
         client.rating.create({
           data: {
             id: genId(),
@@ -296,7 +306,7 @@ client
               connect: { id: userId },
             },
             dest_film: {
-              connect: { id: films[randomInt(0, films.length)].id },
+              connect: { id: films[index].id },
             },
             type: RatingType.FILM,
             score:
@@ -309,17 +319,23 @@ client
       ),
     );
 
-    const tags = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
-        client.tag.create({
-          data: {
-            name: faker.lorem.word(),
-          },
-        }),
-      ),
-    );
+    console.log('Creating tag');
+    const tags = (
+      await Promise.allSettled(
+        Array.from({ length: 100 }).map(async () =>
+          client.tag.create({
+            data: {
+              name: faker.lorem.word(),
+            },
+          }),
+        ),
+      )
+    )
+      .filter((x) => x.status === 'fulfilled')
+      .map((x) => x.value);
 
-    const film_tag = await Promise.all(
+    console.log('Creating film tag');
+    const film_tag = await Promise.allSettled(
       Array.from({ length: 100 }).map(async () =>
         client.filmsOnTags.create({
           data: {
@@ -329,6 +345,8 @@ client
         }),
       ),
     );
+
+    console.log('Done!');
   })
   .catch(console.error)
   .then(console.log);
