@@ -11,6 +11,11 @@ import { RolesGuard } from './account/guards/roles.guard';
 import { ResponseInterceptor } from './response/Response.intercept';
 import { PickseatModule } from './pickseat/pickseat.module';
 import { PerformModule } from './perform/perform.module';
+import { CinemaLayoutSeatModule } from './cinema-layout-seat/cinema-layout-seat.module';
+import { CinemaLayoutModule } from './cinema-layout/cinema-layout.module';
+import { CinemaRoomModule } from './cinema-room/cinema-room.module';
+import { CinemaModule } from './cinema/cinema.module';
+import { CinemaProviderModule } from './cinema-provider/cinema-provider.module';
 
 @Module({
   imports: [
@@ -27,6 +32,11 @@ import { PerformModule } from './perform/perform.module';
     FilmModule,
     PickseatModule,
     PerformModule,
+    CinemaProviderModule,
+    CinemaModule,
+    CinemaRoomModule,
+    CinemaLayoutModule,
+    CinemaLayoutSeatModule,
   ],
   providers: [
     {
