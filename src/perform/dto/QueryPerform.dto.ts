@@ -3,7 +3,7 @@ import { PaginationQueryDto } from 'src/pagination/PaginationQuery.dto';
 import { StringToBuffer } from 'src/utils/StringToBuffer';
 
 export class QueryPerformDto extends PaginationQueryDto {
-  @StringToBuffer({ nullable: true })
+  @StringToBuffer()
   @IsOptional()
   cinema_id?: Buffer;
 }

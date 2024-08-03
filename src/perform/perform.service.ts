@@ -1,26 +1,29 @@
+import { SessionAccount } from './../account/dto/SessionAccount.dto';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePerformDto } from './dto/CreatePerform.dto';
 import { genId } from 'src/shared/genId';
 import { QueryPerformDto } from './dto/QueryPerform.dto';
 import {
-  generatePaginationParams,
+  genPaginationParams,
   genPaginationResponse,
 } from 'src/pagination/pagination.util';
 import { binaryToUuid } from 'src/utils/uuid';
 import { PaginationQueryDto } from 'src/pagination/PaginationQuery.dto';
+import { IdDto } from 'src/shared/id.dto';
+import { UpdatePerformDto } from './dto/UpdatePerform.dto';
 
 @Injectable()
 export class PerformService {
   constructor(private prismaService: PrismaService) {}
 
-  async createItem(body: CreatePerformDto) {
+  async createItem(account: SessionAccount, body: CreatePerformDto) {
     return this.prismaService.perform.create({
       data: {
         id: genId(),
         manager: {
           connect: {
-            id: genId(),
+            id: account.id,
           },
         },
         film: {
@@ -42,7 +45,7 @@ export class PerformService {
     });
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: IdDto['id']) {
     const item = await this.prismaService.perform.findUniqueOrThrow({
       where: {
         id,
@@ -61,18 +64,24 @@ export class PerformService {
   }
 
   async getItems(query: QueryPerformDto) {
-    const items = await this.prismaService.perform.findMany({
-      ...generatePaginationParams(query),
-      where: {
-        room: {
-          cinema_id: query.cinema_id,
-        },
-      },
-    });
-    const paginationResponse = genPaginationResponse({
-      items,
-      paginationQuery: query,
-      total: await this.prismaService.perform.count(),
+    const conditions = {
+      where: query.cinema_id
+        ? {
+            room: {
+              cinema_id: query.cinema_id,
+            },
+          }
+        : undefined,
+    };
+
+    const [items, pagination] = genPaginationResponse({
+      items: await this.prismaService.perform.findMany({
+        ...genPaginationParams(query),
+        ...conditions,
+        where: {},
+      }),
+      total: await this.prismaService.perform.count({ ...conditions }),
+      query,
     });
 
     return {
@@ -86,12 +95,12 @@ export class PerformService {
         view_type: item.view_type,
         price: item.price,
       })),
-      pagination: paginationResponse,
+      pagination,
     };
   }
 
-  async updateItem(id: Buffer, body: CreatePerformDto) {
-    return this.prismaService.perform.update({
+  async updateItem(id: IdDto['id'], body: UpdatePerformDto) {
+    const item = await this.prismaService.perform.update({
       where: {
         id,
       },
@@ -113,13 +122,33 @@ export class PerformService {
         price: body.price,
       },
     });
+    return {
+      id: binaryToUuid(item.id),
+      film_id: binaryToUuid(item.film_id),
+      cinema_room_id: binaryToUuid(item.cinema_room_id),
+      start_time: item.start_time,
+      end_time: item.end_time,
+      translate_type: item.translate_type,
+      view_type: item.view_type,
+      price: item.price,
+    };
   }
 
-  async deleteItem(id: Buffer) {
-    return this.prismaService.perform.delete({
+  async deleteItem(id: IdDto['id']) {
+    const item = await this.prismaService.perform.delete({
       where: {
         id,
       },
     });
+    return {
+      id: binaryToUuid(item.id),
+      film_id: binaryToUuid(item.film_id),
+      cinema_room_id: binaryToUuid(item.cinema_room_id),
+      start_time: item.start_time,
+      end_time: item.end_time,
+      translate_type: item.translate_type,
+      view_type: item.view_type,
+      price: item.price,
+    };
   }
 }
