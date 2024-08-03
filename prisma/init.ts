@@ -1,7 +1,6 @@
 import {
   PrismaClient,
   AccountRole,
-  CinemaRoomType,
   CommentType,
   PerformTranslateType,
   PerformViewType,
@@ -214,7 +213,6 @@ client
               },
             },
             name: faker.company.name(),
-            type: faker.helpers.enumValue(CinemaRoomType),
           },
         }),
       ),

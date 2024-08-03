@@ -168,6 +168,7 @@ model CinemaProvider {
   items    Item[] // Cinema provider can create items for all cinemas
   films    Film[] // Cinema provider can create films for all cinemas
 
+  @@unique([name])
   @@map("cinemaprovider")
 }
 
@@ -189,7 +190,6 @@ model CinemaRoom {
   cinema_id        Bytes          @db.Binary(16)
   cinema_layout_id Bytes          @db.Binary(16)
   name             String         @db.VarChar(255)
-  type             CinemaRoomType
 
   cinema        Cinema       @relation(fields: [cinema_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   cinema_layout CinemaLayout @relation(fields: [cinema_layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -312,12 +312,6 @@ model CinemasOnManagers {
 
   @@id([cinema_id, manager_id])
   @@map("_cinema_manager")
-}
-
-enum CinemaRoomType {
-  NORMAL
-  VIP
-  DELUXE
 }
 
 enum CommentType {

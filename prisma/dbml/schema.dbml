@@ -119,7 +119,7 @@ Table payment {
 
 Table cinemaprovider {
   id Bytes [pk]
-  name String [not null]
+  name String [unique, not null]
   logo_url String [not null]
   background_url String [not null]
   ratings rating [not null]
@@ -144,7 +144,6 @@ Table cinemaroom {
   cinema_id Bytes [not null]
   cinema_layout_id Bytes [not null]
   name String [not null]
-  type CinemaRoomType [not null]
   cinema cinema [not null]
   cinema_layout cinemalayout [not null]
   performs perform [not null]
@@ -253,12 +252,6 @@ Table _cinema_manager {
   indexes {
     (cinema_id, manager_id) [pk]
   }
-}
-
-Enum CinemaRoomType {
-  NORMAL
-  VIP
-  DELUXE
 }
 
 Enum CommentType {
