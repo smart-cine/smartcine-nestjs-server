@@ -1,28 +1,42 @@
 import { binaryToUuid } from 'src/utils/uuid';
 import { PaginationQueryDto } from './PaginationQuery.dto';
+import { IdDto } from 'src/shared/id.dto';
 
-export function genPaginationResponse({
+export function genPaginationResponse<T extends { id: IdDto['id'] }>({
   items,
-  paginationQuery,
+  query,
   total,
 }: {
-  items: any[];
-  paginationQuery: PaginationQueryDto;
+  items: T[];
+  query: PaginationQueryDto;
   total: number;
-}) {
-  const parsedPagination = parsePaginationQuery(paginationQuery);
+}): [
+  T[],
+  {
+    total: number;
+    limit: number;
+    next_page: number | null;
+    next_cursor: string | null;
+  },
+] {
+  const parsedPagination = parsePaginationQuery(query);
   const hasNext = items.length > parsedPagination.limit;
 
-  return {
-    total,
-    limit: parsedPagination.limit,
-    next_page:
-      !parsedPagination.cursor && hasNext ? parsedPagination.page + 1 : null,
-    next_cursor: hasNext ? binaryToUuid(items[items.length - 1 - 1].id) : null,
-  };
+  return [
+    items.slice(0, parsedPagination.limit),
+    {
+      total,
+      limit: parsedPagination.limit,
+      next_page:
+        !parsedPagination.cursor && hasNext ? parsedPagination.page + 1 : null,
+      next_cursor: hasNext
+        ? binaryToUuid(items[items.length - 1 - 1].id)
+        : null,
+    },
+  ];
 }
 
-export function generatePaginationParams(paginationQuery: PaginationQueryDto) {
+export function genPaginationParams(paginationQuery: PaginationQueryDto) {
   const parsedPagination = parsePaginationQuery(paginationQuery);
   const searchOrderOptions = {
     orderBy: Object.fromEntries(
