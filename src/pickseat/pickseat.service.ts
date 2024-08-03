@@ -17,14 +17,46 @@ export class PickseatService {
   ) {}
 
   async createItem(account: SessionAccount, body: CreatePickseatDto) {
+    // check seat exists in perform
+    await this.prismaService.perform.findUniqueOrThrow({
+      where: {
+        id: body.perform_id,
+        room: {
+          cinema_layout: {
+            layout_seats: {
+              some: {
+                id: body.layout_seat_id,
+                available: true, // check if seat is available
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // EDGE CASE: check if user already picked seat in other perform - prevent spamming
+    const scan = await this.redisService.sendCommand<[string, string[]]>([
+      'SCAN',
+      '0',
+      'MATCH',
+      `pickseat:*:${binaryToUuid(account.id)}`,
+    ]);
+    if (
+      !scan[1].every((key) =>
+        key.startsWith(`pickseat:${binaryToUuid(body.perform_id)}`),
+      )
+    ) {
+      throw new Error('You already picked some seats in other perform!');
+    }
+
     await this.redisService.sendCommand([
       'SADD',
-      `pickseat:${binaryToUuid(account.id)}`,
-      binaryToUuid(body.layout_seat_id),
+      `pickseat:${binaryToUuid(body.perform_id)}:${binaryToUuid(account.id)}`,
+      `${binaryToUuid(body.layout_seat_id)}`,
     ]);
     await this.redisService.sendCommand([
       'EXPIRE',
-      `pickseat:${binaryToUuid(account.id)}`,
+      `pickseat:${binaryToUuid(body.perform_id)}:${binaryToUuid(account.id)}`,
       String(15 * 60),
     ]);
 
@@ -65,15 +97,26 @@ export class PickseatService {
   // }
 
   async getItems(account: SessionAccount, query: QueryPickseatDto) {
+    const scan = await this.redisService.sendCommand<[string, string[]]>([
+      'SCAN',
+      '0',
+      'MATCH',
+      `pickseat:${binaryToUuid(query.perform_id)}:*`,
+    ]);
+
     const picking_seats = (
-      (await this.redisService.sendCommand([
-        'SMEMBERS',
-        `pickseat:${binaryToUuid(account.id)}`,
-      ])) as string[]
-    ).map((id) => ({
-      id,
-      status: PickseatStatus.PENDING,
-    }));
+      await Promise.all(
+        scan[1].map(async (key) =>
+          this.redisService.sendCommand<string[]>(['SMEMBERS', key]),
+        ),
+      )
+    )
+      .flat()
+      .map((id) => ({
+        id,
+        status: PickseatStatus.PENDING,
+      }));
+
     const picked_seats = (
       await this.prismaService.pickSeat.findMany({
         where: {
@@ -91,11 +134,11 @@ export class PickseatService {
     return picking_seats.concat(picked_seats);
   }
 
-  async deleteItem(account: SessionAccount, id: Buffer) {
+  async deleteItem(account: SessionAccount, body: CreatePickseatDto) {
     await this.redisService.sendCommand([
       'SREM',
-      `pickseat:${binaryToUuid(account.id)}`,
-      binaryToUuid(id),
+      `pickseat:${binaryToUuid(body.perform_id)}:${binaryToUuid(account.id)}`,
+      `${binaryToUuid(body.layout_seat_id)}`,
     ]);
     // await this.prismaService.pickSeat.delete({
     //   where: {

@@ -40,8 +40,8 @@ export class PickseatController {
     return this.service.getItems(account, query);
   }
 
-  @Delete(':id')
-  delete(@Param() params: IdDto, @Account() account: SessionAccount) {
-    return this.service.deleteItem(account, params.id);
+  @Delete()
+  delete(@Body() body: CreatePickseatDto, @Account() account: SessionAccount) {
+    return this.service.deleteItem(account, body);
   }
 }
