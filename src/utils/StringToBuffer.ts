@@ -3,10 +3,15 @@ import { uuidToBinary } from './uuid';
 
 export function StringToBuffer() {
   return Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return uuidToBinary(value);
+    if (!value) {
+      throw new Error('Value must not be empty');
     }
-
-    throw new Error('Value must be a string!');
+    if (typeof value !== 'string') {
+      throw new Error('Value must be a string');
+    }
+    if (value.length !== 36) {
+      throw new Error('Value must be a valid UUID');
+    }
+    return uuidToBinary(String(value));
   });
 }
