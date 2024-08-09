@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { CinemaLayoutController } from './cinema-layout.controller';
 import { CinemaLayoutService } from './cinema-layout.service';
+import { CinemaLayoutController } from './cinema-layout.controller';
 
 @Module({
-  controllers: [CinemaLayoutController],
-  providers: [CinemaLayoutService]
+  providers: [CinemaLayoutService],
+  controllers: [CinemaLayoutController]
 })
 export class CinemaLayoutModule {}

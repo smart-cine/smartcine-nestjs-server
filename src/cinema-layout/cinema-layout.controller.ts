@@ -12,14 +12,15 @@ import { CinemaLayoutService } from './cinema-layout.service';
 import { QueryCinemaLayoutDto } from './dto/QueryCinemaLayout.dto';
 import { IdDto } from 'src/shared/id.dto';
 import { CreateCinemaLayoutDto } from './dto/CreateCinemaLayout.dto';
-import { Account } from 'src/account/decorators/Account.decorator';
 import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
+import { AccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 import { UpdateCinemaLayoutDto } from './dto/UpdateCinemaLayout.dto';
 import { Roles } from 'src/account/decorators/roles.decorator';
 import { AccountRole } from '@prisma/client';
+import { CloneCinemaLayoutDto } from './dto/CloneCinemaLayout.dto';
 
 @Controller('cinema-layout')
-@Roles([AccountRole.USER, AccountRole.MANAGER])
+@Roles([AccountRole.BUSINESS])
 export class CinemaLayoutController {
   constructor(private service: CinemaLayoutService) {}
 
@@ -36,9 +37,17 @@ export class CinemaLayoutController {
   @Post()
   async createItem(
     @Body() body: CreateCinemaLayoutDto,
-    @Account() account: SessionAccount,
+    @AccountRequest() account: SessionAccount,
   ) {
     return this.service.createItem(account, body);
+  }
+
+  @Post('/clone')
+  async cloneItem(
+    @Body() body: CloneCinemaLayoutDto,
+    @AccountRequest() account: SessionAccount,
+  ) {
+    return this.service.cloneItem(account, body);
   }
 
   @Patch(':id')
