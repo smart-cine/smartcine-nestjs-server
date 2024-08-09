@@ -17,7 +17,7 @@ import { AccountRole } from '@prisma/client';
 import { QueryCinemaRoomDto } from './dto/QueryCinemaRoom.dto';
 
 @Controller('cinema-room')
-// @Roles([AccountRole.USER])
+@Roles([AccountRole.USER, AccountRole.BUSINESS])
 export class CinemaRoomController {
   constructor(private service: CinemaRoomService) {}
 
@@ -32,19 +32,19 @@ export class CinemaRoomController {
   }
 
   @Post()
-  @Roles([AccountRole.MANAGER])
+  @Roles([AccountRole.BUSINESS])
   async create(@Body() body: CreateCinemaRoomDto) {
     return this.service.createItem(body);
   }
 
   @Patch(':id')
-  @Roles([AccountRole.MANAGER])
+  @Roles([AccountRole.BUSINESS])
   async update(@Param() params: IdDto, @Body() body: UpdateCinemaRoomDto) {
     return this.service.updateItem(params.id, body);
   }
 
   @Delete(':id')
-  @Roles([AccountRole.MANAGER])
+  @Roles([AccountRole.BUSINESS])
   async delete(@Param() params: IdDto) {
     return this.service.deleteItem(params.id);
   }

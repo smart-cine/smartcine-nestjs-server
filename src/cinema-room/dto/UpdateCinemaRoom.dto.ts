@@ -1,11 +1,6 @@
-import { IsNotEmpty } from 'class-validator';
-import { StringToBuffer } from 'src/utils/StringToBuffer';
+import { PartialType, PickType } from '@nestjs/mapped-types';
+import { CreateCinemaRoomDto } from './CreateCinemaRoom.dto';
 
-export class UpdateCinemaRoomDto {
-  @StringToBuffer()
-  @IsNotEmpty()
-  cinema_layout_id?: Buffer;
-
-  @IsNotEmpty()
-  name?: string;
-}
+export class UpdateCinemaRoomDto extends PartialType(
+  PickType(CreateCinemaRoomDto, ['name']),
+) {}

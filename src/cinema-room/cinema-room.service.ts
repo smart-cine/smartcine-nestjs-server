@@ -43,13 +43,37 @@ export class CinemaRoomService {
   async getItem(id: IdDto['id']) {
     const item = await this.prismaService.cinemaRoom.findUniqueOrThrow({
       where: { id },
+      include: {
+        layout: {
+          include: {
+            layout_seats: true,
+            layout_groups: true,
+          },
+        },
+      },
     });
 
     return {
       id: binaryToUuid(item.id),
       cinema_id: binaryToUuid(item.cinema_id),
-      cinema_layout_id: binaryToUuid(item.cinema_layout_id),
       name: item.name,
+      layout: {
+        rows: item.layout.rows,
+        columns: item.layout.columns,
+        seats: item.layout.layout_seats.map((seat) => ({
+          id: binaryToUuid(seat.id),
+          group_id: binaryToUuid(seat.group_id),
+          code: seat.code,
+          x: seat.x,
+          y: seat.y,
+        })),
+        groups: item.layout.layout_groups.map((group) => ({
+          id: binaryToUuid(group.id),
+          name: group.name,
+          color: group.color,
+          price: group.price,
+        })),
+      },
     };
   }
 
@@ -75,7 +99,6 @@ export class CinemaRoomService {
     const item = await this.prismaService.cinemaRoom.update({
       where: { id },
       data: {
-        cinema_layout_id: body.cinema_layout_id,
         name: body.name,
       },
     });
@@ -89,12 +112,6 @@ export class CinemaRoomService {
   }
 
   async deleteItem(id: IdDto['id']) {
-    const item = await this.prismaService.cinemaRoom.delete({ where: { id } });
-    return {
-      id: binaryToUuid(item.id),
-      cinema_id: binaryToUuid(item.cinema_id),
-      cinema_layout_id: binaryToUuid(item.cinema_layout_id),
-      name: item.name,
-    };
+    await this.prismaService.cinemaRoom.delete({ where: { id } });
   }
 }
