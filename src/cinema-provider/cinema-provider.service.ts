@@ -10,6 +10,8 @@ import {
   genPaginationParams,
   genPaginationResponse,
 } from 'src/pagination/pagination.util';
+import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
+import { CinemaProviderPermission } from '@prisma/client';
 
 @Injectable()
 export class CinemaProviderService {
@@ -47,11 +49,17 @@ export class CinemaProviderService {
             score: true,
           },
         },
+        business_accounts: {
+          select: {
+            account_id: true,
+          },
+        },
       },
     });
 
     return {
       id: binaryToUuid(item.id),
+      admin_id: binaryToUuid(item.business_accounts[0].account_id),
       name: item.name,
       logo_url: item.logo_url,
       background_url: item.background_url,
@@ -64,13 +72,25 @@ export class CinemaProviderService {
     };
   }
 
-  async createItem(body: CreateCinemaProviderDto) {
+  async createItem(account: TAccountRequest, body: CreateCinemaProviderDto) {
     const item = await this.prismaService.cinemaProvider.create({
       data: {
         id: genId(),
         name: body.name,
         logo_url: body.logo_url,
         background_url: body.background_url,
+        business_accounts: {
+          create: {
+            account_id: account.id,
+            permission: CinemaProviderPermission.ADMIN,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        logo_url: true,
+        background_url: true,
       },
     });
     return {
