@@ -1,4 +1,5 @@
-import { IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsNotEmpty, Max, Min } from 'class-validator';
 import { StringToBuffer } from 'src/utils/StringToBuffer';
 
 export class CreateCinemaLayoutSeatDto {
@@ -9,4 +10,21 @@ export class CreateCinemaLayoutSeatDto {
   @StringToBuffer()
   @IsNotEmpty()
   group_id: Buffer;
+
+  @Min(0)
+  @Max(19)
+  @IsInt()
+  @Type(() => Number)
+  @IsNotEmpty()
+  x: number;
+
+  @Min(0)
+  @Max(19)
+  @IsInt()
+  @Type(() => Number)
+  @IsNotEmpty()
+  y: number;
+
+  @IsNotEmpty()
+  code: string;
 }
