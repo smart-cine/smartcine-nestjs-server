@@ -4,11 +4,14 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  BadGatewayException,
+  HttpException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Response } from './Response.decorator';
 import { TResponse } from './Response.type';
+import { ErrorKey } from './constants/error-key';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -21,23 +24,34 @@ export class ResponseInterceptor implements NestInterceptor {
     const responseOpts =
       this.reflector.get(Response, context.getHandler()) ?? {};
 
-    return next.handle().pipe(
-      map((data) => {
-        if (data?.data) {
+    return next
+      .handle()
+      .pipe(
+        map((data) => {
+          if (data?.data) {
+            return {
+              success: true,
+              message: responseOpts.message ?? 'Success',
+              data: data.data,
+              ...data,
+            };
+          }
+
           return {
             success: true,
             message: responseOpts.message ?? 'Success',
-            data: data.data,
-            ...data,
+            data: data,
           };
-        }
-
-        return {
-          success: true,
-          message: responseOpts.message ?? 'Success',
-          data: data,
-        };
-      }),
-    );
+        }),
+      )
+      .pipe(
+        catchError((err) => {
+          const message = err?.message ?? 'Internal Server Error';
+          const error_key = err?.error_key ?? ErrorKey.INTERNAL;
+          return throwError(
+            () => new HttpException(`${error_key}:${message}`, 500),
+          );
+        }),
+      );
   }
 }
