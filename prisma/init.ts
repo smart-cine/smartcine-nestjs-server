@@ -5,6 +5,8 @@ import {
   PerformTranslateType,
   PerformViewType,
   RatingType,
+  CinemaProviderPermission,
+  WalletType,
 } from '@prisma/client';
 import { randomBytes, randomInt } from 'crypto';
 import { faker } from '@faker-js/faker';
@@ -45,17 +47,32 @@ client
       },
     });
 
-    console.log('Creating manager');
-    const managerId = genId();
-    const manager = await client.account.create({
+    console.log('Creating business');
+    const businessId = genId();
+    const business = await client.account.create({
       data: {
-        id: managerId,
-        email: 'manager@gmail.com',
-        password: await hash('manager'),
-        role: AccountRole.MANAGER,
+        id: businessId,
+        email: 'business@gmail.com',
+        password: await hash('business'),
+        role: AccountRole.BUSINESS,
         name: faker.internet.displayName(),
-        manager_account: {
+        business_account: {
           create: {},
+        },
+      },
+    });
+
+    const bank = await client.businessBank.create({
+      data: {
+        id: genId(),
+        business_account: {
+          connect: { id: businessId },
+        },
+        type: WalletType.VNPAY,
+        data: {
+          vnpay: {
+            merchant: 'merchant',
+          },
         },
       },
     });
@@ -74,14 +91,31 @@ client
       ),
     );
 
+    const providerAdmin =
+      cinemaProviders[randomInt(0, cinemaProviders.length)].id;
+    await client.cinemaProviderOnBusinessAccount.create({
+      data: {
+        business_account: {
+          connect: { id: businessId },
+        },
+        cinema_provider: {
+          connect: {
+            id: providerAdmin,
+          },
+        },
+        permission: CinemaProviderPermission.ADMIN,
+      },
+    });
+    console.log('admin', providerAdmin);
+
     console.log('Creating film');
     const films = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
         client.film.create({
           data: {
             id: genId(),
-            manager: {
-              connect: { id: managerId },
+            business_account: {
+              connect: { id: businessId },
             },
             cinema_provider: {
               connect: {
@@ -122,7 +156,6 @@ client
       ),
     );
 
-    console.log('Creating cinema layout');
     const cinema_layouts = await Promise.all(
       Array.from({ length: 10 }).map(async () => {
         const layout_id = genId();
@@ -132,8 +165,11 @@ client
         const layout = await client.cinemaLayout.create({
           data: {
             id: layout_id,
-            manager: {
-              connect: { id: manager.id },
+            business_account: { connect: { id: business.id } },
+            provider: {
+              connect: {
+                id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
+              },
             },
             rows,
             columns,
@@ -172,6 +208,7 @@ client
             const available = Boolean(
               faker.helpers.rangeToNumber({ min: 0, max: 1 }),
             );
+            if (!available) return null;
             return client.cinemaLayoutSeat.create({
               data: {
                 id: genId(),
@@ -180,14 +217,13 @@ client
                     id: layout_id,
                   },
                 },
-                group: available
-                  ? {
-                      connect: {
-                        id: groups[randomInt(0, groups.length)].id,
-                      },
-                    }
-                  : undefined,
-                available,
+                group: {
+                  connect: {
+                    id: groups[randomInt(0, groups.length)].id,
+                  },
+                },
+                x: i % columns,
+                y: Math.floor(i / columns),
                 code: `${String.fromCharCode(65 + Math.floor(i / columns))}${(i % columns) + 1}`,
               },
             });
@@ -207,7 +243,7 @@ client
             cinema: {
               connect: { id: cinemas[randomInt(0, cinemas.length)].id },
             },
-            cinema_layout: {
+            layout: {
               connect: {
                 id: cinema_layouts[randomInt(0, cinema_layouts.length)].id,
               },
@@ -243,8 +279,8 @@ client
         client.item.create({
           data: {
             id: genId(),
-            manager: {
-              connect: { id: managerId },
+            business_account: {
+              connect: { id: businessId },
             },
             cinema_provider: {
               connect: {
@@ -272,8 +308,8 @@ client
         client.perform.create({
           data: {
             id: genId(),
-            manager: {
-              connect: { id: managerId },
+            business_account: {
+              connect: { id: businessId },
             },
             film: {
               connect: { id: films[randomInt(0, films.length)].id },

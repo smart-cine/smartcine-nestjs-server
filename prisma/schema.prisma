@@ -24,12 +24,12 @@ model Account {
   role     AccountRole
   name     String      @db.VarChar(255)
 
-  payment         Payment[]
-  pickseats       PickSeat[]
-  ratings         Rating[]
-  comments        Comment[]
-  manager_account ManagerAccount?
-  user_account    UserAccount?
+  payment          Payment[]
+  pickseats        PickSeat[]
+  ratings          Rating[]
+  comments         Comment[]
+  business_account BusinessAccount?
+  user_account     UserAccount?
 
   @@map("account")
 }
@@ -42,33 +42,35 @@ model UserAccount {
   @@map("useraccount")
 }
 
-model ManagerAccount {
+model BusinessAccount {
   id Bytes @id @db.Binary(16)
 
-  account  Account             @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  cinemas  CinemasOnManagers[] // Managers manage cinemas
-  items    Item[] // Managers create items (items or combos) for cinema
-  films    Film[] // Managers create films
-  performs Perform[] // Managers create performs
-  layouts  CinemaLayout[] // Managers create cinema layouts
+  items           Item[] // Businesses create items (items or combos) for cinema
+  films           Film[] // Businesses create films
+  performs        Perform[] // Businesses create performs
+  cinema_layouts  CinemaLayout[] // Businesses create cinema layouts
+  banks           BusinessBank[] // Businesses have many bank accounts
+  account         Account                          @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cinema_provider CinemaProviderOnBusinessAccount?
 
-  @@map("manageraccount")
+  @@map("businessaccount")
 }
 
 model Item {
-  id                 Bytes   @id @db.Binary(16)
-  parent_id          Bytes?  @db.Binary(16) // If this item is a combo, this field will be filled
-  manager_id         Bytes   @db.Binary(16) // Which manager create this item?
-  cinema_provider_id Bytes   @db.Binary(16) // Create for which cinema provider?
-  name               String  @db.VarChar(255)
-  price              Decimal @db.Decimal(10, 2)
-  discount           Float   @default(0) @db.Float
+  id                 Bytes  @id @db.Binary(16)
+  parent_id          Bytes? @db.Binary(16) // If this item is a combo, this field will be filled
+  account_id         Bytes  @db.Binary(16) // Which Businesse create this item?
+  cinema_provider_id Bytes  @db.Binary(16) // Create for which cinema provider?
 
-  parent          Item?             @relation("NestedItemSystem", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  manager         ManagerAccount    @relation(fields: [manager_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  cinema_provider CinemaProvider    @relation(fields: [cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  items           Item[]            @relation("NestedItemSystem")
-  payments        ItemsOnPayments[]
+  name     String  @db.VarChar(255)
+  price    Decimal @db.Decimal(10, 2)
+  discount Float   @default(0) @db.Float
+
+  parent           Item?             @relation("NestedItemSystem", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  business_account BusinessAccount   @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cinema_provider  CinemaProvider    @relation(fields: [cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  items            Item[]            @relation("NestedItemSystem")
+  payments         ItemsOnPayments[]
 
   @@map("item")
 }
@@ -83,7 +85,7 @@ model Tag {
 
 model Film {
   id                 Bytes    @id @db.Binary(16)
-  manager_id         Bytes    @db.Binary(16) // Which manager create this film?
+  account_id         Bytes    @db.Binary(16) // Which business account create this film?
   cinema_provider_id Bytes    @db.Binary(16) // Which cinema provider provide this film?
   title              String   @db.VarChar(255)
   director           String   @db.VarChar(50)
@@ -97,12 +99,12 @@ model Film {
   trailer_url        String   @db.VarChar(2083)
   language           String   @db.VarChar(50)
 
-  manager         ManagerAccount @relation(fields: [manager_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  cinema_provider CinemaProvider @relation(fields: [cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  ratings         Rating[]       @relation("RatingToFilm")
-  comments        Comment[]      @relation("CommentToFilm")
-  tags            FilmsOnTags[]
-  performs        Perform[]
+  business_account BusinessAccount @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cinema_provider  CinemaProvider  @relation(fields: [cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  ratings          Rating[]        @relation("RatingToFilm")
+  comments         Comment[]       @relation("CommentToFilm")
+  tags             FilmsOnTags[]
+  performs         Perform[]
 
   @@map("film")
 }
@@ -123,7 +125,7 @@ model PickSeat {
 
 model Perform {
   id             Bytes                @id @db.Binary(16)
-  manager_id     Bytes                @db.Binary(16) // Which manager create this perform?
+  account_id     Bytes                @db.Binary(16) // Which business account create this perform?
   film_id        Bytes                @db.Binary(16) // Which film this perform show?
   cinema_room_id Bytes                @db.Binary(16) // Which cinema room this perform show?
   start_time     DateTime             @db.Timestamp(0)
@@ -132,43 +134,59 @@ model Perform {
   view_type      PerformViewType      @default(value: V2D)
   price          Decimal              @db.Decimal(10, 2)
 
-  manager   ManagerAccount @relation(fields: [manager_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  film      Film           @relation(fields: [film_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  room      CinemaRoom     @relation(fields: [cinema_room_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  payments  Payment[]
-  pickseats PickSeat[]
+  business_account BusinessAccount @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  film             Film            @relation(fields: [film_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  room             CinemaRoom      @relation(fields: [cinema_room_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payments         Payment[]
+  pickseats        PickSeat[]
 
   @@map("perform")
 }
 
 model Payment {
-  id           Bytes         @id @db.Binary(16)
-  account_id   Bytes         @unique @db.Binary(16) // unique because one account only have one payment (safe)
-  perform_id   Bytes         @db.Binary(16) // Which perform this payment belong to? Morelike "the ticket" we bought
-  date_created DateTime      @default(now()) @db.Timestamp(0)
-  date_expired DateTime      @db.Timestamp(0)
-  status       PaymentStatus @default(value: PENDING)
+  id               Bytes         @id @db.Binary(16)
+  account_id       Bytes         @db.Binary(16) // unique because one account only have one payment (safe)
+  perform_id       Bytes         @db.Binary(16) // Which perform this payment belong to? Morelike "the ticket" we bought
+  business_bank_id Bytes         @db.Binary(16) // Which bank the user pay to? (business account bank)
+  date_created     DateTime      @default(now()) @db.Timestamp(0)
+  date_expired     DateTime      @db.Timestamp(0)
+  status           PaymentStatus @default(value: PENDING)
 
-  account Account           @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  perform Perform           @relation(fields: [perform_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  items   ItemsOnPayments[]
+  items         ItemsOnPayments[]
+  account       Account           @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  perform       Perform           @relation(fields: [perform_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  business_bank BusinessBank      @relation(fields: [business_bank_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("payment")
 }
 
+model BusinessBank {
+  id         Bytes @id @db.Binary(16)
+  account_id Bytes @db.Binary(16)
+
+  type WalletType
+  data Json       @db.Json
+
+  payments         Payment[]
+  business_account BusinessAccount @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("businessbank")
+}
+
 model CinemaProvider {
   id             Bytes  @id @db.Binary(16)
-  name           String @db.VarChar(50)
+  name           String @unique @db.VarChar(50)
   logo_url       String @db.VarChar(2083)
   background_url String @db.VarChar(2083)
 
-  ratings  Rating[]  @relation("RatingToCinemaProvider")
-  comments Comment[] @relation("CommentToCinemaProvider")
-  cinemas  Cinema[]
-  items    Item[] // Cinema provider can create items for all cinemas
-  films    Film[] // Cinema provider can create films for all cinemas
+  ratings           Rating[]                          @relation("RatingToCinemaProvider")
+  comments          Comment[]                         @relation("CommentToCinemaProvider")
+  cinemas           Cinema[]
+  items             Item[] // Cinema provider can create items for all cinemas
+  films             Film[] // Cinema provider can create films for all cinemas
+  layouts           CinemaLayout[] // Cinema provider can create cinema layouts for all cinemas
+  business_accounts CinemaProviderOnBusinessAccount[]
 
-  @@unique([name])
   @@map("cinemaprovider")
 }
 
@@ -178,65 +196,67 @@ model Cinema {
   name        String @db.VarChar(50)
   address     String @db.VarChar(255)
 
-  provider CinemaProvider      @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  provider CinemaProvider @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   rooms    CinemaRoom[]
-  managers CinemasOnManagers[]
 
   @@map("cinema")
 }
 
 model CinemaRoom {
-  id               Bytes          @id @db.Binary(16)
-  cinema_id        Bytes          @db.Binary(16)
-  cinema_layout_id Bytes          @db.Binary(16)
-  name             String         @db.VarChar(255)
+  id               Bytes  @id @db.Binary(16)
+  cinema_id        Bytes  @db.Binary(16)
+  cinema_layout_id Bytes  @db.Binary(16)
+  name             String @db.VarChar(255)
 
-  cinema        Cinema       @relation(fields: [cinema_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  cinema_layout CinemaLayout @relation(fields: [cinema_layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  performs      Perform[]
+  cinema   Cinema       @relation(fields: [cinema_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  layout   CinemaLayout @relation(fields: [cinema_layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  performs Perform[]
 
   @@map("cinemaroom")
 }
 
 model CinemaLayout {
-  id         Bytes @id @db.Binary(16)
-  manager_id Bytes @db.Binary(16) // Who create this layout?
-  rows       Int   @db.Int // Number of rows
-  columns    Int   @db.Int // Number of columns
+  id          Bytes @id @db.Binary(16)
+  account_id  Bytes @db.Binary(16) // Who create this layout?
+  provider_id Bytes @db.Binary(16) // Which cinema provider provide this layout?
+  rows        Int   @db.Int // Number of rows
+  columns     Int   @db.Int // Number of columns
 
-  manager       ManagerAccount      @relation(fields: [manager_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  rooms         CinemaRoom[]
-  layout_groups CinemaLayoutGroup[]
-  layout_seats  CinemaLayoutSeat[]
+  business_account BusinessAccount     @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  provider         CinemaProvider      @relation(fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rooms            CinemaRoom[]
+  layout_groups    CinemaLayoutGroup[]
+  layout_seats     CinemaLayoutSeat[]
 
   @@map("cinemalayout")
 }
 
 model CinemaLayoutGroup {
-  id        Bytes  @id @db.Binary(16)
-  layout_id Bytes  @db.Binary(16)
-  name      String @db.VarChar(255)
-  color     Int    @db.Int
-  price     Decimal @db.Decimal(10, 2)
+  id               Bytes   @id @db.Binary(16)
+  cinema_layout_id Bytes   @db.Binary(16)
+  name             String  @db.VarChar(255)
+  color            Int     @db.Int
+  price            Decimal @db.Decimal(10, 2)
 
-  layout       CinemaLayout       @relation(fields: [layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  layout       CinemaLayout       @relation(fields: [cinema_layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   layout_seats CinemaLayoutSeat[]
 
   @@map("cinemalayoutgroup")
 }
 
 model CinemaLayoutSeat {
-  id        Bytes  @id @db.Binary(16)
-  layout_id Bytes  @db.Binary(16) // Which layout this seat belong to?
-  group_id  Bytes?  @db.Binary(16) // Which group this seat belong to?
-  code      String @db.VarChar(50) // A1, A2, A3, B1, B2, B3, ...
-  available Boolean @default(true) @db.Bit(1)
+  id               Bytes  @id @db.Binary(16)
+  cinema_layout_id Bytes  @db.Binary(16) // Which layout this seat belong to?
+  group_id         Bytes? @db.Binary(16) // Which group this seat belong to?
+  code             String @db.VarChar(50) // A1, A2, A3, B1, B2, B3, ...
+  x                Int    @db.Int
+  y                Int    @db.Int
 
-  layout       CinemaLayout      @relation(fields: [layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  group        CinemaLayoutGroup? @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  layout_seats PickSeat[]
+  layout    CinemaLayout       @relation(fields: [cinema_layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  group     CinemaLayoutGroup? @relation(fields: [group_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pickseats PickSeat[]
 
-  @@unique([layout_id, code]) // One layout can only have one seat with same code
+  // @@unique([cinema_layout_id, code]) // One layout can only have one seat with same code
   @@map("cinemalayoutseat")
 }
 
@@ -247,31 +267,32 @@ model Comment {
   dest_comment_id         Bytes? @db.Binary(16)
   dest_cinema_provider_id Bytes? @db.Binary(16)
 
-  body String      @db.VarChar(300)
   type CommentType
+  body String      @db.VarChar(300)
 
   account              Account         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   ratings              Rating[]        @relation("RatingToComment")
   comments             Comment[]       @relation("CommentToComment")
   dest_film            Film?           @relation("CommentToFilm", fields: [dest_film_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  dest_comment         Comment?        @relation("CommentToComment", fields: [dest_comment_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  dest_comment         Comment?        @relation("CommentToComment", fields: [dest_comment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   dest_cinema_provider CinemaProvider? @relation("CommentToCinemaProvider", fields: [dest_cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("comment")
 }
 
 model Rating {
-  id                      Bytes      @id @db.Binary(16)
-  account_id              Bytes      @db.Binary(16)
-  type                    RatingType
-  score                   Float      @db.Float
-  dest_cinema_provider_id Bytes?     @db.Binary(16)
-  dest_film_id            Bytes?     @db.Binary(16)
-  dest_comment_id         Bytes?     @db.Binary(16)
+  id                      Bytes  @id @db.Binary(16)
+  account_id              Bytes  @db.Binary(16)
+  dest_cinema_provider_id Bytes? @db.Binary(16)
+  dest_film_id            Bytes? @db.Binary(16)
+  dest_comment_id         Bytes? @db.Binary(16)
+
+  type  RatingType
+  score Float      @db.Float
 
   account              Account         @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  dest_film            Film?           @relation("RatingToFilm", fields: [dest_film_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   dest_cinema_provider CinemaProvider? @relation("RatingToCinemaProvider", fields: [dest_cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  dest_film            Film?           @relation("RatingToFilm", fields: [dest_film_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   dest_comment         Comment?        @relation("RatingToComment", fields: [dest_comment_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   // One dest can only have one rating from same account
@@ -303,15 +324,19 @@ model ItemsOnPayments {
   @@map("_item_payment")
 }
 
-model CinemasOnManagers {
-  cinema_id  Bytes @db.Binary(16)
-  manager_id Bytes @db.Binary(16)
+model CinemaProviderOnBusinessAccount {
+  // This is one to many relationship with additional metadata between cinema provider and business account
+  // One business account can only have one cinema provider, one cinema provider can have many business accounts managing it (admin, manager, staff)
+  account_id         Bytes @unique @db.Binary(16)
+  cinema_provider_id Bytes @db.Binary(16)
 
-  cinema  Cinema         @relation(fields: [cinema_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  manager ManagerAccount @relation(fields: [manager_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission CinemaProviderPermission
 
-  @@id([cinema_id, manager_id])
-  @@map("_cinema_manager")
+  business_account BusinessAccount @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cinema_provider  CinemaProvider  @relation(fields: [cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([account_id, cinema_provider_id])
+  @@map("_business_provider")
 }
 
 enum CommentType {
@@ -322,13 +347,14 @@ enum CommentType {
 
 enum AccountRole {
   USER
-  MANAGER
+  BUSINESS
   SUPERADMIN
 }
 
 enum PaymentStatus {
   PENDING
-  RESOLVED
+  FAILED
+  SUCCESS
 }
 
 enum PerformTranslateType {
@@ -347,4 +373,16 @@ enum RatingType {
   FILM
   CINEMA_PROVIDER
   COMMENT
+}
+
+enum WalletType {
+  VNPAY
+  MOMO
+  ZALOPAY
+}
+
+enum CinemaProviderPermission {
+  ADMIN
+  MANAGER
+  STAFF
 }
