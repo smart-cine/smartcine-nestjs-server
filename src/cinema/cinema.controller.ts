@@ -30,19 +30,19 @@ export class CinemaController {
   }
 
   @Post()
-  @Roles([AccountRole.MANAGER])
+  @Roles([AccountRole.BUSINESS])
   async createItem(@Body() body: CreateCinemaDto) {
     return this.service.createItem(body);
   }
 
   @Patch(':id')
-  @Roles([AccountRole.MANAGER])
+  @Roles([AccountRole.BUSINESS])
   async updateItem(@Param() params: IdDto, @Body() body: UpdateCinemaDto) {
     return this.service.updateItem(params.id, body);
   }
 
   @Delete(':id')
-  @Roles([AccountRole.MANAGER])
+  @Roles([AccountRole.BUSINESS])
   async deleteItem(@Param() params: IdDto) {
     return this.service.deleteItem(params.id);
   }
