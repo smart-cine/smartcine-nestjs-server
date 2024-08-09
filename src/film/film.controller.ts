@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -12,38 +13,52 @@ import { CreateFilmDto } from './dto/CreateFilm.dto';
 import { UpdateFilmDto } from './dto/UpdateFilm.dto';
 import { IdDto } from 'src/shared/id.dto';
 import { PaginationQueryDto } from 'src/pagination/PaginationQuery.dto';
-import { Account } from 'src/account/decorators/Account.decorator';
+import { AccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
+import { Roles } from 'src/account/decorators/roles.decorator';
+import { AccountRole } from '@prisma/client';
 
 @Controller('film')
 export class FilmController {
   constructor(public service: FilmService) {}
 
+  @Roles([AccountRole.BUSINESS, AccountRole.USER])
+  @Get()
+  async getItems(@Query() pagination: PaginationQueryDto) {
+    return this.service.getItems(pagination);
+  }
+
+  @Roles([AccountRole.BUSINESS, AccountRole.USER])
+  @Get(':id')
+  async getItem(@Param() params: IdDto) {
+    return this.service.getItem(params.id);
+  }
+
+  @Roles([AccountRole.BUSINESS])
   @Post()
-  create(
+  async createItem(
     @Body() createFilmDto: CreateFilmDto,
-    @Account() account: SessionAccount,
+    @AccountRequest() account: SessionAccount,
   ) {
     return this.service.createItem(account, createFilmDto);
   }
 
-  @Get(':id')
-  get(@Param() params: IdDto) {
-    return this.service.getItem(params.id);
-  }
-
-  @Get()
-  getAll(@Query() pagination: PaginationQueryDto) {
-    return this.service.getItems(pagination);
-  }
-
+  @Roles([AccountRole.BUSINESS])
   @Patch(':id')
-  delete(@Param() params: IdDto) {
-    return this.service.deleteItem(params.id);
+  async updateItem(
+    @Param() params: IdDto,
+    @Body() updateFilmDto: UpdateFilmDto,
+    @AccountRequest() account: SessionAccount,
+  ) {
+    return this.service.updateItem(account, params.id, updateFilmDto);
   }
 
-  @Patch(':id')
-  update(@Param() params: IdDto, @Body() updateFilmDto: UpdateFilmDto) {
-    return this.service.updateItem(params.id, updateFilmDto);
+  @Roles([AccountRole.BUSINESS])
+  @Delete(':id')
+  async deleteItem(
+    @Param() params: IdDto,
+    @AccountRequest() account: SessionAccount,
+  ) {
+    return this.service.deleteItem(account, params.id);
   }
 }

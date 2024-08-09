@@ -38,7 +38,7 @@ export class FilmService {
     return {
       data: items.map((item) => ({
         id: binaryToUuid(item.id),
-        manager_id: binaryToUuid(item.manager_id),
+        account_id: binaryToUuid(item.account_id),
         cinema_provider_id: binaryToUuid(item.cinema_provider_id),
         tags: item.tags.map((tag) => tag.tag.name),
         title: item.title,
@@ -70,7 +70,7 @@ export class FilmService {
     });
     return {
       id: binaryToUuid(film.id),
-      manager_id: binaryToUuid(film.manager_id),
+      account_id: binaryToUuid(film.account_id),
       cinema_provider_id: binaryToUuid(film.cinema_provider_id),
       tags: film.tags.map((tag) => tag.tag.name),
       title: film.title,
@@ -93,10 +93,8 @@ export class FilmService {
       this.prismaService.film.create({
         data: {
           id: film_id,
-          manager: { connect: { id: account.id } },
-          cinema_provider: {
-            connect: { id: body.cinema_provider_id },
-          },
+          account_id: account.id,
+          cinema_provider_id: body.cinema_provider_id,
           title: body.title,
           director: body.director,
           description: body.description,
@@ -123,12 +121,10 @@ export class FilmService {
     ]);
   }
 
-  updateItem(id: IdDto['id'], body: UpdateFilmDto) {
+  updateItem(account: SessionAccount, id: IdDto['id'], body: UpdateFilmDto) {
     return this.prismaService.film.update({
       where: { id },
       data: {
-        manager: { connect: { id: genId() } },
-        cinema_provider: { connect: { id: body.cinema_provider_id } },
         title: body.title,
         director: body.director,
         description: body.description,
@@ -144,7 +140,7 @@ export class FilmService {
     });
   }
 
-  deleteItem(id: IdDto['id']) {
+  deleteItem(account: SessionAccount, id: IdDto['id']) {
     this.prismaService.film.delete({ where: { id } });
   }
 }
