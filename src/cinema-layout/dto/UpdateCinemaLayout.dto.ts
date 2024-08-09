@@ -1,14 +1,6 @@
-import { Transform } from 'class-transformer';
-import { IsInt, IsOptional } from 'class-validator';
+import { PartialType, PickType } from '@nestjs/mapped-types';
+import { CreateCinemaLayoutDto } from './CreateCinemaLayout.dto';
 
-export class UpdateCinemaLayoutDto {
-  @IsInt()
-  @Transform(({ value }) => Number(value))
-  @IsOptional()
-  rows?: number;
-
-  @IsInt()
-  @Transform(({ value }) => Number(value))
-  @IsOptional()
-  columns?: number;
-}
+export class UpdateCinemaLayoutDto extends PartialType(
+  PickType(CreateCinemaLayoutDto, ['rows', 'columns']),
+) {}
