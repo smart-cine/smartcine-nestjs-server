@@ -62,21 +62,6 @@ client
       },
     });
 
-    const bank = await client.businessBank.create({
-      data: {
-        id: genId(),
-        business_account: {
-          connect: { id: businessId },
-        },
-        type: WalletType.VNPAY,
-        data: {
-          vnpay: {
-            merchant: 'merchant',
-          },
-        },
-      },
-    });
-
     console.log('Creating cinema provider');
     const cinemaProviders = await Promise.all(
       Array.from({ length: 100 }).map(async () =>
@@ -86,6 +71,17 @@ client
             name: faker.company.name(),
             logo_url: faker.image.url(),
             background_url: faker.image.url(),
+            banks: {
+              create: {
+                id: genId(),
+                type: WalletType.VNPAY,
+                data: {
+                  vnpay: {
+                    merchant: 'merchant',
+                  },
+                },
+              },
+            },
           },
         }),
       ),
@@ -114,9 +110,6 @@ client
         client.film.create({
           data: {
             id: genId(),
-            business_account: {
-              connect: { id: businessId },
-            },
             cinema_provider: {
               connect: {
                 id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
@@ -165,7 +158,6 @@ client
         const layout = await client.cinemaLayout.create({
           data: {
             id: layout_id,
-            business_account: { connect: { id: business.id } },
             provider: {
               connect: {
                 id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
@@ -279,9 +271,6 @@ client
         client.item.create({
           data: {
             id: genId(),
-            business_account: {
-              connect: { id: businessId },
-            },
             cinema_provider: {
               connect: {
                 id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
@@ -308,9 +297,6 @@ client
         client.perform.create({
           data: {
             id: genId(),
-            business_account: {
-              connect: { id: businessId },
-            },
             film: {
               connect: { id: films[randomInt(0, films.length)].id },
             },

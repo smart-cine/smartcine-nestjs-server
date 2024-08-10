@@ -23,11 +23,6 @@ Table useraccount {
 
 Table businessaccount {
   id Bytes [pk]
-  items item [not null]
-  films film [not null]
-  performs perform [not null]
-  cinema_layouts cinemalayout [not null]
-  banks businessbank [not null]
   account account [not null]
   cinema_provider _business_provider
 }
@@ -35,16 +30,14 @@ Table businessaccount {
 Table item {
   id Bytes [pk]
   parent_id Bytes
-  account_id Bytes [not null]
   cinema_provider_id Bytes [not null]
   name String [not null]
   price Decimal [not null]
   discount Float [not null, default: 0]
-  parent item
-  business_account businessaccount [not null]
-  cinema_provider cinemaprovider [not null]
-  items item [not null]
   payments _item_payment [not null]
+  items item [not null]
+  parent item
+  cinema_provider cinemaprovider [not null]
 }
 
 Table tag {
@@ -54,7 +47,6 @@ Table tag {
 
 Table film {
   id Bytes [pk]
-  account_id Bytes [not null]
   cinema_provider_id Bytes [not null]
   title String [not null]
   director String [not null]
@@ -67,12 +59,11 @@ Table film {
   background_url String [not null]
   trailer_url String [not null]
   language String [not null]
-  business_account businessaccount [not null]
-  cinema_provider cinemaprovider [not null]
   ratings rating [not null]
   comments comment [not null]
   tags _film_tag [not null]
   performs perform [not null]
+  cinema_provider cinemaprovider [not null]
 }
 
 Table pickseat {
@@ -91,7 +82,6 @@ Table pickseat {
 
 Table perform {
   id Bytes [pk]
-  account_id Bytes [not null]
   film_id Bytes [not null]
   cinema_room_id Bytes [not null]
   start_time DateTime [not null]
@@ -99,11 +89,10 @@ Table perform {
   translate_type PerformTranslateType [not null, default: 'NONE']
   view_type PerformViewType [not null, default: 'V2D']
   price Decimal [not null]
-  business_account businessaccount [not null]
-  film film [not null]
-  room cinemaroom [not null]
   payments payment [not null]
   pickseats pickseat [not null]
+  film film [not null]
+  room cinemaroom [not null]
 }
 
 Table payment {
@@ -122,11 +111,12 @@ Table payment {
 
 Table businessbank {
   id Bytes [pk]
-  account_id Bytes [not null]
+  cinema_provider_id Bytes [not null]
   type WalletType [not null]
   data Json [not null]
   payments payment [not null]
-  business_account businessaccount [not null]
+  cinema_provider cinemaprovider [not null]
+  cinemas _bank_cinema [not null]
 }
 
 Table cinemaprovider {
@@ -141,15 +131,17 @@ Table cinemaprovider {
   films film [not null]
   layouts cinemalayout [not null]
   business_accounts _business_provider [not null]
+  banks businessbank [not null]
 }
 
 Table cinema {
   id Bytes [pk]
-  provider_id Bytes [not null]
+  cinema_provider_id Bytes [not null]
   name String [not null]
   address String [not null]
-  provider cinemaprovider [not null]
   rooms cinemaroom [not null]
+  banks _bank_cinema [not null]
+  provider cinemaprovider [not null]
 }
 
 Table cinemaroom {
@@ -164,11 +156,9 @@ Table cinemaroom {
 
 Table cinemalayout {
   id Bytes [pk]
-  account_id Bytes [not null]
-  provider_id Bytes [not null]
+  cinema_provider_id Bytes [not null]
   rows Int [not null]
   columns Int [not null]
-  business_account businessaccount [not null]
   provider cinemaprovider [not null]
   rooms cinemaroom [not null]
   layout_groups cinemalayoutgroup [not null]
@@ -256,14 +246,22 @@ Table _item_payment {
 }
 
 Table _business_provider {
-  account_id Bytes [unique, not null]
+  account_id Bytes [pk]
   cinema_provider_id Bytes [not null]
   permission CinemaProviderPermission [not null]
   business_account businessaccount [not null]
   cinema_provider cinemaprovider [not null]
+}
+
+Table _bank_cinema {
+  cinema_id Bytes [not null]
+  bank_id Bytes [not null]
+  type WalletType [not null]
+  bank businessbank [not null]
+  cinema cinema [not null]
 
   indexes {
-    (account_id, cinema_provider_id) [pk]
+    (cinema_id, type) [pk]
   }
 }
 
@@ -319,13 +317,9 @@ Ref: useraccount.id - account.id [delete: Cascade]
 
 Ref: businessaccount.id - account.id [delete: Cascade]
 
-Ref: item.parent_id - item.id [delete: No Action]
-
-Ref: item.account_id > businessaccount.id [delete: Cascade]
+Ref: item.parent_id > item.id
 
 Ref: item.cinema_provider_id > cinemaprovider.id [delete: Cascade]
-
-Ref: film.account_id > businessaccount.id [delete: Cascade]
 
 Ref: film.cinema_provider_id > cinemaprovider.id [delete: Cascade]
 
@@ -334,8 +328,6 @@ Ref: pickseat.account_id > account.id [delete: Cascade]
 Ref: pickseat.perform_id > perform.id [delete: Cascade]
 
 Ref: pickseat.layout_seat_id > cinemalayoutseat.id [delete: Cascade]
-
-Ref: perform.account_id > businessaccount.id [delete: Cascade]
 
 Ref: perform.film_id > film.id [delete: Cascade]
 
@@ -347,17 +339,15 @@ Ref: payment.perform_id > perform.id [delete: Cascade]
 
 Ref: payment.business_bank_id > businessbank.id [delete: Cascade]
 
-Ref: businessbank.account_id > businessaccount.id [delete: Cascade]
+Ref: businessbank.cinema_provider_id > cinemaprovider.id [delete: Cascade]
 
-Ref: cinema.provider_id > cinemaprovider.id [delete: Cascade]
+Ref: cinema.cinema_provider_id > cinemaprovider.id [delete: Cascade]
 
 Ref: cinemaroom.cinema_id > cinema.id [delete: Cascade]
 
 Ref: cinemaroom.cinema_layout_id > cinemalayout.id [delete: Cascade]
 
-Ref: cinemalayout.account_id > businessaccount.id [delete: Cascade]
-
-Ref: cinemalayout.provider_id > cinemaprovider.id [delete: Cascade]
+Ref: cinemalayout.cinema_provider_id > cinemaprovider.id [delete: Cascade]
 
 Ref: cinemalayoutgroup.cinema_layout_id > cinemalayout.id [delete: Cascade]
 
@@ -392,3 +382,7 @@ Ref: _item_payment.payment_id > payment.id [delete: Cascade]
 Ref: _business_provider.account_id - businessaccount.id [delete: Cascade]
 
 Ref: _business_provider.cinema_provider_id > cinemaprovider.id [delete: Cascade]
+
+Ref: _bank_cinema.bank_id > businessbank.id [delete: Cascade]
+
+Ref: _bank_cinema.cinema_id > cinema.id [delete: Cascade]
