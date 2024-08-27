@@ -18,6 +18,7 @@ export class AccountController {
     return this.service.login(body);
   }
 
+  // @Roles([AccountRole.BUSINESS, AccountRole.USER])
   // @Post('logout')
   // logout(@Token() token: string) {
   //   return this.service.logout(token);
