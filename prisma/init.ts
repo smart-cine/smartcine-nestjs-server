@@ -1,3 +1,4 @@
+import { PaymentController } from './../src/payment/payment.controller';
 import {
   PrismaClient,
   AccountRole,
@@ -5,13 +6,18 @@ import {
   PerformTranslateType,
   PerformViewType,
   RatingType,
-  CinemaProviderPermission,
   WalletType,
+  BusinessRole,
+  Prisma,
+  FeatureFlag,
+  PaymentStatus,
 } from '@prisma/client';
 import { randomBytes, randomInt } from 'crypto';
-import { faker } from '@faker-js/faker';
+import { faker, ro } from '@faker-js/faker';
 import { hash } from 'src/utils/hash';
 import { genId } from 'src/shared/genId';
+import { ModelName } from '@casl/prisma/dist/types/prismaClientBoundTypes';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 
 const client = new PrismaClient({
   log: [
@@ -26,347 +32,576 @@ const client = new PrismaClient({
 //   console.log(`${e.query} ${e.params}`);
 // });
 
+function createWithOwnershipTree<
+  ModelName extends Prisma.TypeMap['meta']['modelProps'],
+>(
+  model: ModelName,
+  treeData: {
+    parent_id: Buffer;
+    child_id: Buffer;
+  },
+) {
+  // @ts-ignore
+  client[model].createMany({
+    data: [{}],
+  });
+}
+
 client
   .$connect()
   .then(async () => {
-    console.log('Connected to the database');
-    // create account
+    console.time('init database');
+    console.time('Creating account');
+    await init(client);
+  })
+  .catch(console.error)
+  .then(console.log);
 
-    console.log('Creating account');
-    const userId = genId();
-    const user = await client.account.create({
-      data: {
-        id: userId,
-        email: 'user@gmail.com',
-        password: await hash('user'),
-        role: AccountRole.USER,
-        name: faker.internet.displayName(),
-        user_account: {
-          create: {},
-        },
+async function init(prisma: PrismaClient) {
+  const userId = genId();
+  const user = await prisma.account.create({
+    data: {
+      id: userId,
+      email: 'user@gmail.com',
+      password: await hash('user'),
+      role: AccountRole.USER,
+      name: faker.internet.displayName(),
+      user_account: {
+        create: {},
       },
-    });
+    },
+  });
+  console.timeEnd('Creating account');
 
-    console.log('Creating business');
-    const businessId = genId();
-    const business = await client.account.create({
-      data: {
-        id: businessId,
-        email: 'business@gmail.com',
-        password: await hash('business'),
-        role: AccountRole.BUSINESS,
-        name: faker.internet.displayName(),
-        business_account: {
-          create: {},
-        },
+  console.time('Creating business');
+  const businessId = genId();
+  const business = await prisma.account.create({
+    data: {
+      id: businessId,
+      email: 'business@gmail.com',
+      password: await hash('business'),
+      role: AccountRole.BUSINESS,
+      name: faker.internet.displayName(),
+      business_account: {
+        create: {},
       },
-    });
+    },
+  });
+  console.timeEnd('Creating business');
 
-    console.log('Creating cinema provider');
-    const cinemaProviders = await Promise.all(
+  console.time('Creating cinema provider');
+  const cinemaProviders = (
+    await Promise.allSettled(
       Array.from({ length: 100 }).map(async () =>
-        client.cinemaProvider.create({
+        prisma.cinemaProvider.create({
           data: {
             id: genId(),
             name: faker.company.name(),
             logo_url: faker.image.url(),
             background_url: faker.image.url(),
             banks: {
-              create: {
-                id: genId(),
-                type: WalletType.VNPAY,
-                data: {
-                  vnpay: {
-                    merchant: 'merchant',
+              createMany: {
+                data: Array.from({ length: 3 }).map(() => ({
+                  id: genId(),
+                  type: WalletType.VNPAY,
+                  data: {
+                    vnp_TmnCode: 'E6T2KFD0',
+                    vnp_SecureHash: 'E454D25V72H2G6HSFP9B0PWG3LCVWMJQ',
                   },
-                },
+                })),
               },
             },
           },
+          include: {
+            banks: true,
+          },
         }),
       ),
-    );
+    )
+  )
+    .filter((x) => x.status === 'fulfilled')
+    .map((x) => x.value);
+  console.timeEnd('Creating cinema provider');
 
-    const providerAdmin =
-      cinemaProviders[randomInt(0, cinemaProviders.length)].id;
-    await client.cinemaProviderOnBusinessAccount.create({
-      data: {
-        business_account: {
-          connect: { id: businessId },
+  console.time('Creating provider admin');
+  const providerAdminID =
+    cinemaProviders[randomInt(0, cinemaProviders.length)].id;
+  await prisma.ownership.create({
+    data: {
+      owner_id: businessId,
+      item_id: providerAdminID,
+      role: BusinessRole.PROVIDER_ADMIN,
+    },
+  });
+  console.timeEnd('Creating provider admin');
+
+  console.time('Creating film');
+  const films = await Promise.all(
+    Array.from({ length: 100 }).map(async () => {
+      const provider_id =
+        cinemaProviders[randomInt(0, cinemaProviders.length)].id;
+      const id = genId();
+
+      return prisma.film.create({
+        data: {
+          id: id,
+          cinema_provider_id:
+            cinemaProviders[randomInt(0, cinemaProviders.length)].id,
+          title: faker.lorem.words({ min: 1, max: 3 }),
+          director: faker.lorem.words({ min: 1, max: 2 }),
+          background_url: faker.image.url(),
+          country: faker.location.countryCode(),
+          duration: randomInt(60, 180),
+          release_date: faker.date.past(),
+          language: faker.location.countryCode(),
+          restrict_age: 0,
+          picture_url: faker.image.url(),
+          trailer_url: 'https://youtu.be/GTupBD8M3yw',
+          description: faker.lorem.paragraph(),
         },
-        cinema_provider: {
-          connect: {
-            id: providerAdmin,
+      });
+    }),
+  );
+  console.timeEnd('Creating film');
+
+  console.time('Creating cinema');
+  const cinemas = await Promise.all(
+    Array.from({ length: 100 }).map(async (_, index) =>
+      prisma.cinema.create({
+        data: {
+          id: genId(),
+          provider: {
+            connect: {
+              id: cinemaProviders[index].id,
+            },
+          },
+          name: faker.company.name(),
+          address: faker.location.secondaryAddress(),
+        },
+        include: {
+          provider: {
+            include: {
+              banks: true,
+            },
           },
         },
-        permission: CinemaProviderPermission.ADMIN,
-      },
-    });
-    console.log('admin', providerAdmin);
-
-    console.log('Creating film');
-    const films = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
-        client.film.create({
-          data: {
-            id: genId(),
-            cinema_provider: {
-              connect: {
-                id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
-              },
-            },
-            title: faker.lorem.words({ min: 1, max: 3 }),
-            director: faker.lorem.words({ min: 1, max: 2 }),
-            background_url: faker.image.url(),
-            country: faker.location.countryCode(),
-            duration: randomInt(60, 180),
-            release_date: faker.date.past(),
-            language: faker.location.countryCode(),
-            restrict_age: 0,
-            picture_url: faker.image.url(),
-            trailer_url: 'https://youtu.be/GTupBD8M3yw',
-            description: faker.lorem.paragraph(),
-          },
-        }),
-      ),
-    );
-
-    console.log('Creating cinema');
-    const cinemas = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
-        client.cinema.create({
-          data: {
-            id: genId(),
-            provider: {
-              connect: {
-                id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
-              },
-            },
-            name: faker.company.name(),
-            address: faker.location.secondaryAddress(),
-          },
-        }),
-      ),
-    );
-
-    const cinema_layouts = await Promise.all(
-      Array.from({ length: 10 }).map(async () => {
-        const layout_id = genId();
-        const rows = randomInt(5, 15);
-        const columns = randomInt(5, 10);
-
-        const layout = await client.cinemaLayout.create({
-          data: {
-            id: layout_id,
-            provider: {
-              connect: {
-                id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
-              },
-            },
-            rows,
-            columns,
-          },
-        });
-
-        const grouptypes = [
-          'Ghế thường',
-          'Ghế VIP',
-          'Ghế đôi',
-          'Vùng trung tâm',
-        ];
-        const groups = await Promise.all(
-          Array.from({ length: 4 }).map(() =>
-            client.cinemaLayoutGroup.create({
-              data: {
-                id: genId(),
-                layout: {
-                  connect: {
-                    id: layout_id,
-                  },
-                },
-                name: grouptypes.pop()!,
-                color: faker.helpers.rangeToNumber({ min: 0, max: 255 }),
-                price: faker.finance.amount({
-                  min: 10000,
-                  max: 100000,
-                }),
-              },
-            }),
-          ),
-        );
-
-        const seats = await Promise.all(
-          Array.from({ length: columns * rows }).map((_, i) => {
-            const available = Boolean(
-              faker.helpers.rangeToNumber({ min: 0, max: 1 }),
-            );
-            if (!available) return null;
-            return client.cinemaLayoutSeat.create({
-              data: {
-                id: genId(),
-                layout: {
-                  connect: {
-                    id: layout_id,
-                  },
-                },
-                group: {
-                  connect: {
-                    id: groups[randomInt(0, groups.length)].id,
-                  },
-                },
-                x: i % columns,
-                y: Math.floor(i / columns),
-                code: `${String.fromCharCode(65 + Math.floor(i / columns))}${(i % columns) + 1}`,
-              },
-            });
-          }),
-        );
-
-        return layout;
       }),
-    );
+    ),
+  );
+  console.timeEnd('Creating cinema');
 
-    console.log('Creating cinema room');
-    const rooms = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
-        client.cinemaRoom.create({
+  console.time('Creating cinema bank');
+  await prisma.businessBankOnCinema.createMany({
+    data: cinemas.map((cinema) => ({
+      cinema_id: cinema.id,
+      business_bank_id: cinema.provider.banks[0].id,
+      type: cinema.provider.banks[0].type,
+    })),
+  });
+  console.timeEnd('Creating cinema bank');
+
+  console.time('Creating cinema room');
+  const rooms = (
+    await Promise.allSettled(
+      Array.from({ length: 100 }).map(async (_, index) =>
+        prisma.cinemaRoom.create({
           data: {
             id: genId(),
             cinema: {
-              connect: { id: cinemas[randomInt(0, cinemas.length)].id },
-            },
-            layout: {
-              connect: {
-                id: cinema_layouts[randomInt(0, cinema_layouts.length)].id,
-              },
+              connect: { id: cinemas[index].id },
             },
             name: faker.company.name(),
           },
         }),
       ),
-    );
-
-    console.log('Creating comment');
-    const comment = await Promise.all(
-      Array.from({ length: 100 }).map(async (_, i) =>
-        client.comment.create({
-          data: {
-            id: genId(),
-            account: {
-              connect: { id: userId },
-            },
-            dest_film: {
-              connect: { id: films[i].id },
-            },
-            body: faker.lorem.paragraph(),
-            type: CommentType.FILM,
-          },
-        }),
-      ),
-    );
-
-    console.log('Creating item');
-    const item = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
-        client.item.create({
-          data: {
-            id: genId(),
-            cinema_provider: {
-              connect: {
-                id: cinemaProviders[randomInt(0, cinemaProviders.length)].id,
-              },
-            },
-            name: faker.company.name(),
-            price: faker.finance.amount({
-              min: 10000,
-              max: 100000,
-            }),
-            discount:
-              faker.helpers.rangeToNumber({
-                min: 0,
-                max: 100,
-              }) / 100,
-          },
-        }),
-      ),
-    );
-
-    console.log('Creating perform');
-    const perform = await Promise.all(
-      Array.from({ length: 100 }).map(async () =>
-        client.perform.create({
-          data: {
-            id: genId(),
-            film: {
-              connect: { id: films[randomInt(0, films.length)].id },
-            },
-            room: {
-              connect: { id: rooms[randomInt(0, rooms.length)].id },
-            },
-            start_time: faker.date.future(),
-            end_time: faker.date.future(),
-            translate_type: faker.helpers.enumValue(PerformTranslateType),
-            view_type: faker.helpers.enumValue(PerformViewType),
-            price: faker.finance.amount({
-              min: 10000,
-              max: 100000,
-            }),
-          },
-        }),
-      ),
-    );
-
-    console.log('Creating rating');
-    const rating = await Promise.all(
-      Array.from({ length: 100 }).map(async (_, index) =>
-        client.rating.create({
-          data: {
-            id: genId(),
-            account: {
-              connect: { id: userId },
-            },
-            dest_film: {
-              connect: { id: films[index].id },
-            },
-            type: RatingType.FILM,
-            score:
-              faker.helpers.rangeToNumber({
-                min: 0,
-                max: 10,
-              }) / 10,
-          },
-        }),
-      ),
-    );
-
-    console.log('Creating tag');
-    const tags = (
-      await Promise.allSettled(
-        Array.from({ length: 100 }).map(async () =>
-          client.tag.create({
-            data: {
-              name: faker.lorem.word(),
-            },
-          }),
-        ),
-      )
     )
-      .filter((x) => x.status === 'fulfilled')
-      .map((x) => x.value);
+  )
+    .filter((x) => x.status === 'fulfilled')
+    .map((x) => x.value);
+  console.timeEnd('Creating cinema room');
 
-    console.log('Creating film tag');
-    const film_tag = await Promise.allSettled(
+  console.time('Creating cinema layouts');
+  const cinema_layouts = await Promise.all(
+    Array.from({ length: 100 }).map(async (_, index) => {
+      const layout_id = genId();
+      const rows = randomInt(5, 15);
+      const columns = randomInt(5, 10);
+
+      await prisma.cinemaLayout.createMany({
+        data: {
+          id: layout_id,
+          cinema_provider_id: cinemaProviders[index].id,
+          cinema_room_id: index == 0 ? undefined : rooms[index].id,
+          rows,
+          columns,
+        },
+      });
+
+      const grouptypes = ['Ghế thường', 'Ghế VIP', 'Ghế đôi', 'Vùng trung tâm'];
+      const groups = Array.from({ length: 4 }).map(() => ({
+        id: genId(),
+        cinema_layout_id: layout_id,
+        name: grouptypes.pop()!,
+        color: faker.helpers.rangeToNumber({ min: 0, max: 255 }),
+        price: faker.finance.amount({
+          min: 10000,
+          max: 100000,
+        }),
+      }));
+      await prisma.cinemaLayoutGroup.createMany({
+        data: groups,
+      });
+
+      // const seats = await Promise.all(
+      //   Array.from({ length: columns * rows }).map((_, i) => {
+      //     const available = Boolean(
+      //       faker.helpers.rangeToNumber({ min: 0, max: 1 }),
+      //     );
+      //     if (!available) return null;
+      //     return prisma.cinemaLayoutSeat.create({
+      //       data: {
+      //         id: genId(),
+      //         layout: {
+      //           connect: {
+      //             id: layout_id,
+      //           },
+      //         },
+      //         group: {
+      //           connect: {
+      //             id: groups[randomInt(0, groups.length)].id,
+      //           },
+      //         },
+      //         x: i % columns,
+      //         y: Math.floor(i / columns),
+      //         code: `${String.fromCharCode(65 + Math.floor(i / columns))}${(i % columns) + 1}`,
+      //       },
+      //     });
+      //   }),
+      // );
+      const seats = Array.from({ length: columns * rows })
+        .map((_, i) => {
+          const available = Boolean(
+            faker.helpers.rangeToNumber({ min: 0, max: 1 }),
+          );
+          if (!available) return null;
+          return {
+            id: genId(),
+            cinema_layout_id: layout_id,
+            group_id: groups[randomInt(0, groups.length)].id,
+            x: i % columns,
+            y: Math.floor(i / columns),
+            code: `${String.fromCharCode(65 + Math.floor(i / columns))}${(i % columns) + 1}`,
+          };
+        })
+        .filter((x) => x) as {
+        id: Buffer;
+        cinema_layout_id: Buffer;
+        group_id: Buffer;
+        x: number;
+        y: number;
+        code: string;
+      }[];
+      await prisma.cinemaLayoutSeat.createMany({
+        data: seats,
+      });
+
+      return {
+        id: layout_id,
+        cinema_provider_id: cinemaProviders[index].id,
+        cinema_room_id: index == 0 ? undefined : rooms[index].id,
+        rows,
+        columns,
+        groups,
+        seats,
+      };
+    }),
+  );
+  console.timeEnd('Creating cinema layouts');
+
+  console.time('Creating comment');
+  const comment = await Promise.all(
+    Array.from({ length: 100 }).map(async (_, i) =>
+      prisma.comment.create({
+        data: {
+          id: genId(),
+          account: {
+            connect: { id: userId },
+          },
+          dest_film: {
+            connect: { id: films[i].id },
+          },
+          body: faker.lorem.paragraph(),
+          type: CommentType.FILM,
+        },
+      }),
+    ),
+  );
+  console.timeEnd('Creating comment');
+
+  console.time('Creating item');
+  const items = await Promise.all(
+    Array.from({ length: 100 }).map(async () =>
+      prisma.item.create({
+        data: {
+          id: genId(),
+          cinema_id: cinemas[randomInt(0, cinemas.length)].id,
+          name: faker.company.name(),
+          price: faker.finance.amount({
+            min: 10000,
+            max: 100000,
+          }),
+          discount:
+            faker.helpers.rangeToNumber({
+              min: 0,
+              max: 100,
+            }) / 100,
+        },
+      }),
+    ),
+  );
+  console.timeEnd('Creating item');
+
+  console.time('Creating perform');
+  const performs = await Promise.all(
+    Array.from({ length: 100 }).map(async (_, index) =>
+      prisma.perform.create({
+        data: {
+          id: genId(),
+          film_id: films[randomInt(0, films.length)].id,
+          cinema_room_id: rooms[index].id,
+          start_time: faker.date.future(),
+          end_time: faker.date.future(),
+          translate_type: faker.helpers.enumValue(PerformTranslateType),
+          view_type: faker.helpers.enumValue(PerformViewType),
+          price: faker.finance.amount({
+            min: 10000,
+            max: 100000,
+          }),
+        },
+      }),
+    ),
+  );
+  console.timeEnd('Creating perform');
+
+  console.time('Creating payment');
+  const banks = await prisma.businessBank.findMany();
+  // const payments = await Promise.all(
+  //   Array.from({ length: 100 }).map(async (_, index) =>
+  //     prisma.payment.create({
+  //       data: {
+  //         id: genId(),
+  //         account_id: userId,
+  //         perform_id: performs[index].id,
+  //         business_bank_id: banks[randomInt(0, banks.length)].id,
+  //         type: WalletType.VNPAY,
+  //         data: {
+  //           vnpay: {
+  //             merchant: 'merchant',
+  //           },
+  //         },
+  //         date_expired: faker.date.future(),
+  //         status: PaymentStatus.PENDING,
+  //       },
+  //     }),
+  //   ),
+  // );
+  console.timeEnd('Creating payment');
+
+  console.time('Creating rating');
+  const ratings = await Promise.all(
+    Array.from({ length: 100 }).map(async (_, index) =>
+      prisma.rating.create({
+        data: {
+          id: genId(),
+          account: {
+            connect: { id: userId },
+          },
+          dest_film: {
+            connect: { id: films[index].id },
+          },
+          type: RatingType.FILM,
+          score:
+            faker.helpers.rangeToNumber({
+              min: 0,
+              max: 10,
+            }) / 10,
+        },
+      }),
+    ),
+  );
+  console.timeEnd('Creating rating');
+
+  console.time('Creating tag');
+  const tags = (
+    await Promise.allSettled(
       Array.from({ length: 100 }).map(async () =>
-        client.filmsOnTags.create({
+        prisma.tag.create({
           data: {
-            film_id: films[randomInt(0, films.length)].id,
-            tag_id: tags[randomInt(0, tags.length)].name,
+            name: faker.lorem.word(),
           },
         }),
       ),
-    );
+    )
+  )
+    .filter((x) => x.status === 'fulfilled')
+    .map((x) => x.value);
+  console.timeEnd('Creating tag');
 
-    console.log('Done!');
-  })
-  .catch(console.error)
-  .then(console.log);
+  console.time('Creating pickseat');
+  await prisma.pickseat.createMany({
+    data: Array.from({ length: 100 }).map((_, index) => ({
+      id: genId(),
+      account_id: userId,
+      perform_id: performs[index].id,
+      layout_seat_id:
+        cinema_layouts[index].seats[
+          randomInt(0, cinema_layouts[index].seats.length)
+        ].id,
+    })),
+  });
+  console.timeEnd('Creating pickseat');
+
+  console.time('Creating film tag');
+  const film_tag = await Promise.allSettled(
+    Array.from({ length: 100 }).map(async () =>
+      prisma.filmsOnTags.create({
+        data: {
+          film_id: films[randomInt(0, films.length)].id,
+          tag_id: tags[randomInt(0, tags.length)].name,
+        },
+      }),
+    ),
+  );
+  console.timeEnd('Creating film tag');
+
+  console.time('building ownership tree');
+  await prisma.ownershipTree.createMany({
+    data: films.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_provider_id,
+    })),
+  });
+  await prisma.ownershipTree.createMany({
+    data: cinemas.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_provider_id,
+    })),
+  });
+  await prisma.ownershipTree.createMany({
+    data: cinema_layouts.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_room_id //! If cinema_room_id is undefined, it will belong to cinema_provider_id else it will belong to cinema_room_id
+        ? item.cinema_room_id
+        : item.cinema_provider_id,
+    })),
+  });
+  const layoutGroups = await prisma.cinemaLayoutGroup.findMany();
+  await prisma.ownershipTree.createMany({
+    data: layoutGroups.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_layout_id,
+    })),
+  });
+  const layoutSeats = await prisma.cinemaLayoutSeat.findMany();
+  await prisma.ownershipTree.createMany({
+    data: layoutSeats.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_layout_id,
+    })),
+  });
+  await prisma.ownershipTree.createMany({
+    data: rooms.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_id,
+    })),
+  });
+  await prisma.ownershipTree.createMany({
+    data: performs.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_room_id,
+    })),
+  });
+  await prisma.ownershipTree.createMany({
+    data: items.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_id,
+    })),
+  });
+  await prisma.ownershipTree.createMany({
+    data: banks.map((item) => ({
+      item_id: item.id,
+      parent_id: item.cinema_provider_id,
+    })),
+  });
+  console.timeEnd('building ownership tree');
+
+  console.time('creating role to feature');
+  const staffCinema = [
+    FeatureFlag.UPDATE_CINEMA_ROOM,
+    FeatureFlag.UPDATE_CINEMA_LAYOUT,
+    FeatureFlag.UPDATE_CINEMA_LAYOUT_SEAT,
+    FeatureFlag.UPDATE_CINEMA_LAYOUT_GROUP,
+    FeatureFlag.CREATE_PERFORM,
+    FeatureFlag.UPDATE_PERFORM,
+    FeatureFlag.DELETE_PERFORM,
+    FeatureFlag.UPDATE_ITEM,
+  ];
+
+  const managerCinema = [
+    ...staffCinema,
+    FeatureFlag.UPDATE_CINEMA,
+    FeatureFlag.CREATE_CINEMA_ROOM,
+    FeatureFlag.DELETE_CINEMA_ROOM,
+    FeatureFlag.CREATE_CINEMA_LAYOUT_GROUP,
+    FeatureFlag.DELETE_CINEMA_LAYOUT_GROUP,
+    FeatureFlag.CREATE_CINEMA_LAYOUT_SEAT,
+    FeatureFlag.DELETE_CINEMA_LAYOUT_SEAT,
+    FeatureFlag.CREATE_ITEM,
+    FeatureFlag.DELETE_ITEM,
+  ];
+
+  const managerProvider = [
+    ...managerCinema,
+    FeatureFlag.UPDATE_CINEMA_PROVIDER,
+    FeatureFlag.CREATE_CINEMA,
+    FeatureFlag.DELETE_CINEMA,
+    FeatureFlag.CREATE_CINEMA_LAYOUT,
+    FeatureFlag.CLONE_CINEMA_LAYOUT,
+    FeatureFlag.DELETE_CINEMA_LAYOUT,
+    FeatureFlag.CREATE_FILM,
+    FeatureFlag.UPDATE_FILM,
+    FeatureFlag.DELETE_FILM,
+    FeatureFlag.ADD_TAG,
+    FeatureFlag.REMOVE_TAG,
+  ];
+
+  const adminProvider = [
+    ...managerProvider,
+    FeatureFlag.DELETE_CINEMA_PROVIDER,
+  ];
+
+  await prisma.roleToFeature.createMany({
+    data: [
+      ...staffCinema.map((feature) => ({
+        role: BusinessRole.CINEMA_STAFF,
+        feature: feature,
+      })),
+      ...managerCinema.map((feature) => ({
+        role: BusinessRole.CINEMA_MANAGER,
+        feature: feature,
+      })),
+      ...managerProvider.map((feature) => ({
+        role: BusinessRole.PROVIDER_MANAGER,
+        feature: feature,
+      })),
+      ...adminProvider.map((feature) => ({
+        role: BusinessRole.PROVIDER_ADMIN,
+        feature: feature,
+      })),
+    ],
+  });
+  console.timeEnd('creating role to feature');
+
+  console.log('Done!');
+  console.timeEnd('init database');
+}
