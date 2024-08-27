@@ -24,7 +24,7 @@ export class RolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<TCustomRequest>();
 
-    if (!roles.includes(request.account.role)) {
+    if (request.account?.role && !roles.includes(request.account.role)) {
       throw new UnauthorizedException(
         "You don't have permission to access this resource",
       );

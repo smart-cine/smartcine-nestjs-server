@@ -10,37 +10,28 @@ import { validateOrReject } from 'class-validator';
 import { Request } from 'express';
 import { RedisService } from 'src/redis/redis.service';
 import { plainToInstance } from 'class-transformer';
-import { SessionAccount } from '../dto/SessionAccount.dto';
+import { JwtPayloadDto } from '../dto/JwtPayload.dto';
 import { Roles } from '../decorators/roles.decorator';
-import { AccountRole, CinemaProviderPermission } from '@prisma/client';
-import { Permissions } from '../decorators/permissions.decorator';
-import { TAccountRequest } from '../decorators/AccountRequest.decorator';
+import { AccountRole } from '@prisma/client';
 import { TCustomRequest } from '../types/TCustomRequest';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class JwtParserGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
+    private prismaService: PrismaService,
     private jwtService: JwtService,
     private redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const permission =
-      this.reflector.get<CinemaProviderPermission>(
-        Permissions,
-        context.getHandler(),
-      ) ??
-      this.reflector.get<CinemaProviderPermission>(
-        Permissions,
-        context.getClass(),
-      );
     const roles =
       this.reflector.get<AccountRole>(Roles, context.getHandler()) ??
       this.reflector.get<AccountRole>(Roles, context.getClass()) ??
       [];
 
-    if (!permission && roles.length === 0) {
+    if (roles.length === 0) {
       return true;
     }
 
@@ -52,8 +43,27 @@ export class JwtParserGuard implements CanActivate {
         return true;
       }
       const payload = await this.jwtService.verifyAsync(token);
-      const dto = plainToInstance(SessionAccount, payload);
-      await validateOrReject(dto);
+      const payloadValidate = plainToInstance(JwtPayloadDto, payload);
+      await validateOrReject(payloadValidate);
+      if (payloadValidate.role === AccountRole.BUSINESS) {
+        await this.prismaService.businessAccount.findUniqueOrThrow({
+          where: {
+            id: payloadValidate.id,
+          },
+          select: {
+            id: true,
+          },
+        });
+      } else if (payloadValidate.role === AccountRole.USER) {
+        await this.prismaService.userAccount.findUniqueOrThrow({
+          where: {
+            id: payloadValidate.id,
+          },
+          select: {
+            id: true,
+          },
+        });
+      }
 
       // const isBlacklisted = await this.redisService.isBlacklisted(token);
       // if (isBlacklisted) {
@@ -61,10 +71,9 @@ export class JwtParserGuard implements CanActivate {
       //   throw new UnauthorizedException('Invalid token');
       // }
 
-      request.account = dto;
-    } catch (error) {
-      console.log(error);
-      throw new UnauthorizedException();
+      request.account = payloadValidate;
+    } catch (error: any) {
+      throw new UnauthorizedException(error?.message);
     }
     return true;
   }
