@@ -22,8 +22,10 @@ import { ItemModule } from './item/item.module';
 import { CommentModule } from './comment/comment.module';
 import { RatingModule } from './rating/rating.module';
 import { JwtParserGuard } from './account/guards/jwt-parser.guard';
-import { PermissionsGuard } from './account/guards/permissions.guard';
 import { HttpExceptionFilter } from './response/filter/http-exception.filter';
+import { PaymentModule } from './payment/payment.module';
+import { OwnershipModule } from './ownership/ownership.module';
+import { FeatureGuard } from './account/guards/feature.guard';
 
 @Module({
   imports: [
@@ -50,6 +52,8 @@ import { HttpExceptionFilter } from './response/filter/http-exception.filter';
     ItemModule,
     CommentModule,
     RatingModule,
+    PaymentModule,
+    OwnershipModule,
   ],
   providers: [
     {
@@ -62,7 +66,7 @@ import { HttpExceptionFilter } from './response/filter/http-exception.filter';
     },
     {
       provide: APP_GUARD,
-      useClass: PermissionsGuard,
+      useClass: FeatureGuard,
     },
     {
       provide: APP_INTERCEPTOR,
@@ -78,7 +82,6 @@ import { HttpExceptionFilter } from './response/filter/http-exception.filter';
         new ValidationPipe({
           transform: true,
           whitelist: true,
-          // transformOptions: { enableImplicitConversion: true },
         }),
     },
   ],
