@@ -10,16 +10,6 @@ import {
 import { StringToBuffer } from 'src/utils/StringToBuffer';
 
 export class UpdatePerformDto {
-  @StringToBuffer()
-  @IsNotEmpty()
-  @IsOptional()
-  film_id?: Buffer;
-
-  @StringToBuffer()
-  @IsNotEmpty()
-  @IsOptional()
-  cinema_room_id?: Buffer;
-
   @Transform(({ value }) => new Date(value))
   @IsDateString()
   @IsOptional()

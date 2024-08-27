@@ -1,8 +1,7 @@
 import { binaryToUuid } from 'src/utils/uuid';
 import { PaginationQueryDto } from './PaginationQuery.dto';
-import { IdDto } from 'src/shared/id.dto';
 
-export function genPaginationResponse<T extends { id: IdDto['id'] }>({
+export function genPaginationResponse<T extends { id: Buffer }>({
   items,
   query,
   total,
@@ -36,21 +35,30 @@ export function genPaginationResponse<T extends { id: IdDto['id'] }>({
   ];
 }
 
-export function genPaginationParams(paginationQuery: PaginationQueryDto) {
+export function genPaginationParams<T extends Record<string, any>>(
+  paginationQuery: PaginationQueryDto,
+  conditions = {} as T,
+) {
   const parsedPagination = parsePaginationQuery(paginationQuery);
+
   const searchOrderOptions = {
     orderBy: Object.fromEntries(
       parsedPagination.sort.map((sort) => [sort.field, sort.by]),
     ),
-    where: parsedPagination.search.length
-      ? {
-          OR: parsedPagination.search.map((search) => ({
-            [search.field]: {
-              contains: search.value,
-            },
-          })),
-        }
-      : undefined,
+    where: {
+      AND: [
+        parsedPagination.search.length
+          ? {
+              OR: parsedPagination.search.map((search) => ({
+                [search.field]: {
+                  contains: search.value,
+                },
+              })),
+            }
+          : {},
+        conditions,
+      ],
+    },
   };
 
   if (parsedPagination.cursor) {

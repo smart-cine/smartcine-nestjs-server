@@ -12,8 +12,10 @@ import { RatingService } from './rating.service';
 import { QueryRatingDto } from './dto/QueryRating.dto';
 import { IdDto } from 'src/shared/id.dto';
 import { CreateRatingDto } from './dto/CreateRating.dto';
-import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
-import { AccountRequest } from 'src/account/decorators/AccountRequest.decorator';
+import {
+  AccountRequest,
+  TAccountRequest,
+} from 'src/account/decorators/AccountRequest.decorator';
 import { UpdateRating } from './dto/UpdateRating.dto';
 import { Roles } from 'src/account/decorators/roles.decorator';
 import { AccountRole } from '@prisma/client';
@@ -36,25 +38,25 @@ export class RatingController {
   @Post()
   async createItem(
     @Body() body: CreateRatingDto,
-    @AccountRequest() account: SessionAccount,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.createItem(account, body);
+    return this.service.createItem(body, account);
   }
 
   @Patch(':id')
   async updateItem(
     @Param() params: IdDto,
     @Body() body: UpdateRating,
-    @AccountRequest() account: SessionAccount,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.updateItem(account, params.id, body);
+    return this.service.updateItem(params.id, body, account);
   }
 
   @Delete(':id')
   async deleteItem(
     @Param() params: IdDto,
-    @AccountRequest() account: SessionAccount,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.deleteItem(account, params.id);
+    return this.service.deleteItem(params.id, account);
   }
 }

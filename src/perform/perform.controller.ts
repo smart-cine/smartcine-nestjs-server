@@ -12,10 +12,13 @@ import { IdDto } from 'src/shared/id.dto';
 import { CreatePerformDto } from './dto/CreatePerform.dto';
 import { UpdatePerformDto } from './dto/UpdatePerform.dto';
 import { QueryPerformDto } from './dto/QueryPerform.dto';
-import { Account } from 'src/account/decorators/Account.decorator';
-import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
+import {
+  AccountRequest,
+  TAccountRequest,
+} from 'src/account/decorators/AccountRequest.decorator';
 import { Roles } from 'src/account/decorators/roles.decorator';
-import { AccountRole } from '@prisma/client';
+import { AccountRole, FeatureFlag } from '@prisma/client';
+import { Feature } from 'src/account/decorators/feature.decorator';
 
 @Controller('perform')
 export class PerformController {
@@ -31,24 +34,31 @@ export class PerformController {
     return this.service.getItem(params.id);
   }
 
+  @Feature(FeatureFlag.CREATE_PERFORM)
   @Post()
-  @Roles([AccountRole.MANAGER])
+  @Roles([AccountRole.BUSINESS])
   create(
-    @Body() createFilmDto: CreatePerformDto,
-    @Account() account: SessionAccount,
+    @Body() body: CreatePerformDto,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.createItem(account, createFilmDto);
+    return this.service.createItem(body, account);
   }
 
+  @Feature(FeatureFlag.UPDATE_PERFORM)
   @Patch(':id')
-  @Roles([AccountRole.MANAGER])
-  update(@Param() params: IdDto, @Body() body: UpdatePerformDto) {
-    return this.service.updateItem(params.id, body);
+  @Roles([AccountRole.BUSINESS])
+  update(
+    @Param() params: IdDto,
+    @Body() body: UpdatePerformDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.updateItem(params.id, body, account);
   }
 
+  @Feature(FeatureFlag.DELETE_PERFORM)
   @Patch(':id')
-  @Roles([AccountRole.MANAGER])
-  delete(@Param() params: IdDto) {
-    return this.service.deleteItem(params.id);
+  @Roles([AccountRole.BUSINESS])
+  delete(@Param() params: IdDto, @AccountRequest() account: TAccountRequest) {
+    return this.service.deleteItem(params.id, account);
   }
 }

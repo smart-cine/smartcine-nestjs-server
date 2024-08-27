@@ -3,7 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDto } from './dto/CreateComment.dto';
 import { binaryToUuid } from 'src/utils/uuid';
 import { CommentType } from '@prisma/client';
-import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
 import { QueryCommentDto } from './dto/QueryComment.dto';
 import { IdDto } from 'src/shared/id.dto';
 import {
@@ -80,7 +79,7 @@ export class CommentService {
     };
   }
 
-  async getItem(id: IdDto['id']) {
+  async getItem(id: Buffer) {
     const item = await this.prismaService.comment.findUniqueOrThrow({
       where: { id },
       select: {
@@ -116,11 +115,11 @@ export class CommentService {
     };
   }
 
-  async createItem(account: SessionAccount, body: CreateCommentDto) {
+  async createItem(account_id: Buffer, body: CreateCommentDto) {
     const item = await this.prismaService.comment.create({
       data: {
         id: genId(),
-        account_id: account.id,
+        account_id,
         type: body.type,
         body: body.body,
         ...this.getDestObject(body.type, body.dest_id),
@@ -137,7 +136,7 @@ export class CommentService {
     };
   }
 
-  async updateItem(id: IdDto['id'], body: UpdateCommentDto) {
+  async updateItem(id: Buffer, body: UpdateCommentDto) {
     const item = await this.prismaService.comment.update({
       where: { id },
       data: {
@@ -155,7 +154,7 @@ export class CommentService {
     };
   }
 
-  async deleteItem(id: IdDto['id']) {
+  async deleteItem(id: Buffer) {
     await this.prismaService.comment.delete({
       where: { id },
     });

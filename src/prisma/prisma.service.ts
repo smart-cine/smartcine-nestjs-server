@@ -38,7 +38,7 @@ export class PrismaService
 
   async onModuleInit() {
     await this.$connect();
-    this.$extends(withOptimize({ enable: true }));
+    // this.$extends(withOptimize({ enable: true }));
     // this.$use(this.categorySoftDeleteMiddleware);
     // this.$use(this.categoryFindMiddleware);
     // this.$extends({

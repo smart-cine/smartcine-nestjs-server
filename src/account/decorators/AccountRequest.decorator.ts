@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { SessionAccount } from '../dto/SessionAccount.dto';
 import { TCustomRequest } from '../types/TCustomRequest';
+import { AccountRole } from '@prisma/client';
 
 export const AccountRequest = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
@@ -14,4 +14,7 @@ export const AccountRequest = createParamDecorator(
   },
 );
 
-export type TAccountRequest = SessionAccount;
+export type TAccountRequest = {
+  id: Buffer;
+  role: AccountRole;
+};

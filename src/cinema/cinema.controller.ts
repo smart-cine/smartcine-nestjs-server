@@ -14,11 +14,18 @@ import { IdDto } from 'src/shared/id.dto';
 import { CreateCinemaDto } from './dto/CreateCinema.dto';
 import { UpdateCinemaDto } from './dto/UpdateCinema.dto';
 import { Roles } from 'src/account/decorators/roles.decorator';
-import { AccountRole } from '@prisma/client';
+import { AccountRole, FeatureFlag } from '@prisma/client';
+import {
+  AccountRequest,
+  TAccountRequest,
+} from 'src/account/decorators/AccountRequest.decorator';
+import { Feature } from 'src/account/decorators/feature.decorator';
 
 @Controller('cinema')
+@Roles([AccountRole.USER, AccountRole.BUSINESS])
 export class CinemaController {
   constructor(private service: CinemaService) {}
+
   @Get()
   async getItems(@Query() query: QueryCinemaDto) {
     return this.service.getItems(query);
@@ -29,21 +36,34 @@ export class CinemaController {
     return this.service.getItem(params.id);
   }
 
+  @Feature(FeatureFlag.CREATE_CINEMA)
+  @Roles([AccountRole.BUSINESS])
   @Post()
-  @Roles([AccountRole.BUSINESS])
-  async createItem(@Body() body: CreateCinemaDto) {
-    return this.service.createItem(body);
+  async createItem(
+    @Body() body: CreateCinemaDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.createItem(body, account);
   }
 
+  @Feature(FeatureFlag.UPDATE_CINEMA)
+  @Roles([AccountRole.BUSINESS])
   @Patch(':id')
-  @Roles([AccountRole.BUSINESS])
-  async updateItem(@Param() params: IdDto, @Body() body: UpdateCinemaDto) {
-    return this.service.updateItem(params.id, body);
+  async updateItem(
+    @Param() params: IdDto,
+    @Body() body: UpdateCinemaDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.updateItem(params.id, body, account);
   }
 
-  @Delete(':id')
+  @Feature(FeatureFlag.DELETE_CINEMA)
   @Roles([AccountRole.BUSINESS])
-  async deleteItem(@Param() params: IdDto) {
-    return this.service.deleteItem(params.id);
+  @Delete(':id')
+  async deleteItem(
+    @Param() params: IdDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.deleteItem(params.id, account);
   }
 }

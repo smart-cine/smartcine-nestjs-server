@@ -6,4 +6,5 @@ export class QueryPerformDto extends PaginationQueryDto {
   @StringToBuffer()
   @IsOptional()
   cinema_id?: Buffer;
+  // TODO: bỏ cinema_id, query ko cần where condition
 }

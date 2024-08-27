@@ -3,6 +3,13 @@ import { TagService } from './tag.service';
 import { QueryTagDto } from './dto/QueryTag.dto';
 import { CreateTagDto } from './dto/CreateTag.dto';
 import { DeleteTagDto } from './dto/DeleteTag.dto';
+import { Feature } from 'src/account/decorators/feature.decorator';
+import { AccountRole, FeatureFlag } from '@prisma/client';
+import {
+  AccountRequest,
+  TAccountRequest,
+} from 'src/account/decorators/AccountRequest.decorator';
+import { Roles } from 'src/account/decorators/roles.decorator';
 
 @Controller('tag')
 export class TagController {
@@ -13,13 +20,23 @@ export class TagController {
     return this.service.getItems(query);
   }
 
+  @Feature(FeatureFlag.ADD_TAG)
+  @Roles([AccountRole.BUSINESS])
   @Post()
-  async createItem(@Body() body: CreateTagDto) {
-    return this.service.createItem(body);
+  async createItem(
+    @Body() body: CreateTagDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.createItem(body, account);
   }
 
+  @Feature(FeatureFlag.REMOVE_TAG)
+  @Roles([AccountRole.BUSINESS])
   @Delete()
-  async deleteItem(@Body() body: DeleteTagDto) {
-    return this.service.deleteItem(body);
+  async deleteItem(
+    @Body() body: DeleteTagDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.deleteItem(body, account);
   }
 }

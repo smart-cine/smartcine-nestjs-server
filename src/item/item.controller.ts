@@ -9,17 +9,19 @@ import {
   Query,
 } from '@nestjs/common';
 import { IdDto } from 'src/shared/id.dto';
-import { AccountRequest } from 'src/account/decorators/AccountRequest.decorator';
-import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
+import {
+  AccountRequest,
+  TAccountRequest,
+} from 'src/account/decorators/AccountRequest.decorator';
 import { ItemService } from './item.service';
 import { QueryItemDto } from './dto/QueryItem.dto';
 import { CreateItemDto } from './dto/CreateItem.dto';
 import { UpdateItemDto } from './dto/UpdateItem.dto';
 import { Roles } from 'src/account/decorators/roles.decorator';
-import { AccountRole } from '@prisma/client';
+import { AccountRole, FeatureFlag } from '@prisma/client';
+import { Feature } from 'src/account/decorators/feature.decorator';
 
 @Controller('item')
-@Roles([AccountRole.BUSINESS, AccountRole.USER])
 export class ItemController {
   constructor(private service: ItemService) {}
 
@@ -28,31 +30,34 @@ export class ItemController {
     return this.service.getItems(query);
   }
 
+  @Feature(FeatureFlag.CREATE_ITEM)
   @Roles([AccountRole.BUSINESS])
   @Post()
   async createItem(
     @Body() body: CreateItemDto,
-    @AccountRequest() account: SessionAccount,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.createItem(account, body);
+    return this.service.createItem(body, account);
   }
 
+  @Feature(FeatureFlag.UPDATE_ITEM)
   @Roles([AccountRole.BUSINESS])
   @Patch(':id')
   async updateItem(
     @Param() params: IdDto,
     @Body() body: UpdateItemDto,
-    @AccountRequest() account: SessionAccount,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.updateItem(account, params.id, body);
+    return this.service.updateItem(params.id, body, account);
   }
 
+  @Feature(FeatureFlag.DELETE_ITEM)
   @Roles([AccountRole.BUSINESS])
   @Delete(':id')
   async deleteItem(
     @Param() params: IdDto,
-    @AccountRequest() account: SessionAccount,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.deleteItem(account, params.id);
+    return this.service.deleteItem(params.id, account);
   }
 }

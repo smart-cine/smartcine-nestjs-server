@@ -12,22 +12,23 @@ import { CreatePickseatDto } from './dto/CreatePickseat.dto';
 import { IdDto } from 'src/shared/id.dto';
 import { Roles } from 'src/account/decorators/roles.decorator';
 import { AccountRole } from '@prisma/client';
-import { Account } from 'src/account/decorators/Account.decorator';
-import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
+import {
+  AccountRequest,
+  TAccountRequest,
+} from 'src/account/decorators/AccountRequest.decorator';
 import { QueryPickseatDto } from './dto/QueryPickseat.dto';
 
 @Controller('pickseat')
-@Roles([AccountRole.USER, AccountRole.MANAGER])
+@Roles([AccountRole.USER, AccountRole.BUSINESS])
 export class PickseatController {
   constructor(private service: PickseatService) {}
 
   @Post()
-  @Roles([AccountRole.USER, AccountRole.MANAGER])
   create(
     @Body() createFilmDto: CreatePickseatDto,
-    @Account() account: SessionAccount,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    return this.service.createItem(account, createFilmDto);
+    return this.service.createItem(createFilmDto, account);
   }
 
   // @Get(':id')
@@ -36,12 +37,18 @@ export class PickseatController {
   // }
 
   @Get()
-  getAll(@Query() query: QueryPickseatDto, @Account() account: SessionAccount) {
-    return this.service.getItems(account, query);
+  getAll(
+    @Query() query: QueryPickseatDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.getItems(query);
   }
 
   @Delete()
-  delete(@Body() body: CreatePickseatDto, @Account() account: SessionAccount) {
-    return this.service.deleteItem(account, body);
+  delete(
+    @Body() body: CreatePickseatDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.deleteItem(body, account);
   }
 }

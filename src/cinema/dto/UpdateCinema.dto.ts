@@ -1,9 +1,6 @@
-import { IsOptional } from 'class-validator';
+import { PartialType, PickType } from '@nestjs/mapped-types';
+import { CreateCinemaDto } from './CreateCinema.dto';
 
-export class UpdateCinemaDto {
-  @IsOptional()
-  name?: string;
-
-  @IsOptional()
-  address?: string;
-}
+export class UpdateCinemaDto extends PartialType(
+  PickType(CreateCinemaDto, ['name', 'address']),
+) {}

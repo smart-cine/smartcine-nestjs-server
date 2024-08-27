@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { QueryTagDto } from './dto/QueryTag.dto';
 import { CreateTagDto } from './dto/CreateTag.dto';
 import { DeleteTagDto } from './dto/DeleteTag.dto';
+import { OwnershipService } from 'src/ownership/ownership.service';
+import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 
 @Injectable()
 export class TagService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private ownershipService: OwnershipService,
+  ) {}
 
   async getItems(query: QueryTagDto) {
     const items = await this.prismaService.filmsOnTags.findMany({
@@ -21,7 +26,9 @@ export class TagService {
     return items.map((item) => item.tag.name);
   }
 
-  async createItem(body: CreateTagDto) {
+  async createItem(body: CreateTagDto, account: TAccountRequest) {
+    await this.ownershipService.accountHasAccess(body.film_id, account.id);
+
     await this.prismaService.tag.createMany({
       data: body.tags.map((tag) => ({
         name: tag,
@@ -38,7 +45,9 @@ export class TagService {
     });
   }
 
-  async deleteItem(body: DeleteTagDto) {
+  async deleteItem(body: DeleteTagDto, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(body.film_id, account.id);
+
     await this.prismaService.filmsOnTags.deleteMany({
       where: {
         film_id: body.film_id,

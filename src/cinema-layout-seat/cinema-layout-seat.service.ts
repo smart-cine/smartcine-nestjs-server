@@ -1,20 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCinemaLayoutSeatDto } from './dto/CreateCinemaLayoutSeat.dto';
 import { genId } from 'src/shared/genId';
 import { binaryToUuid } from 'src/utils/uuid';
 import { IdDto } from 'src/shared/id.dto';
 import { UpdateCinemaLayoutSeat } from './dto/UpdateCinemaLayoutSeat.dto';
+import { ClientError } from 'src/response/error/ClientError';
+import { ErrorKey } from 'src/response/constants/error-key';
+import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
+import { OwnershipService } from 'src/ownership/ownership.service';
 
 @Injectable()
 export class CinemaLayoutSeatService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private ownershipService: OwnershipService,
+  ) {}
 
-  async createItem(body: CreateCinemaLayoutSeatDto) {
+  async createItem(body: CreateCinemaLayoutSeatDto, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(
+      body.layout_id,
+      account.id,
+    );
+
     // check if seat already exists
     const seatExist = await this.prismaService.cinemaLayoutSeat.findFirst({
       where: {
-        layout: { id: body.layout_id },
+        cinema_layout_id: body.layout_id,
         OR: [
           {
             x: body.x,
@@ -29,7 +41,10 @@ export class CinemaLayoutSeatService {
     });
 
     if (seatExist) {
-      throw new Error('Seat already exists');
+      throw new ClientError(
+        'Seat or code already exists',
+        ErrorKey.SEAT_EXISTS,
+      );
     }
 
     // check if seat is not out of bounds
@@ -45,28 +60,41 @@ export class CinemaLayoutSeatService {
       throw new Error('Seat is out of bounds');
     }
 
-    const item = await this.prismaService.cinemaLayoutSeat.create({
-      data: {
-        id: genId(),
-        layout: { connect: { id: body.layout_id } },
-        group: { connect: { id: body.group_id } },
-        code: body.code,
-        x: body.x,
-        y: body.y,
-      },
+    const id = genId();
+    await this.ownershipService.createItem(async () => {
+      await this.prismaService.cinemaLayoutSeat.createMany({
+        data: {
+          id: id,
+          cinema_layout_id: body.layout_id,
+          group_id: body.group_id,
+          code: body.code,
+          x: body.x,
+          y: body.y,
+        },
+      });
+      return {
+        item_id: id,
+        parent_id: body.layout_id,
+      };
     });
 
     return {
-      id: binaryToUuid(item.id),
-      layout_id: binaryToUuid(item.cinema_layout_id),
-      group_id: binaryToUuid(item.group_id),
-      code: item.code,
-      x: item.x,
-      y: item.y,
+      id: binaryToUuid(id),
+      layout_id: binaryToUuid(body.layout_id),
+      group_id: binaryToUuid(body.group_id),
+      code: body.code,
+      x: body.x,
+      y: body.y,
     };
   }
 
-  async updateItem(id: IdDto['id'], body: UpdateCinemaLayoutSeat) {
+  async updateItem(
+    id: Buffer,
+    body: UpdateCinemaLayoutSeat,
+    account: TAccountRequest,
+  ) {
+    await this.ownershipService.checkAccountHasAccess(id, account.id);
+
     const item = await this.prismaService.cinemaLayoutSeat.update({
       where: { id: id },
       data: {
@@ -75,18 +103,23 @@ export class CinemaLayoutSeatService {
     });
 
     return {
-      id: binaryToUuid(item.id),
-      layout_id: binaryToUuid(item.cinema_layout_id),
+      id: binaryToUuid(id),
+      cinema_layout_id: binaryToUuid(item.cinema_layout_id),
       group_id: binaryToUuid(item.group_id),
-      code: item.code,
+      code: body.code,
       x: item.x,
       y: item.y,
     };
   }
 
-  async deleteItem(id: IdDto['id']) {
-    await this.prismaService.cinemaLayoutSeat.delete({
-      where: { id: id },
+  async deleteItem(id: Buffer, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(id, account.id);
+
+    await this.ownershipService.deleteItem(async () => {
+      await this.prismaService.cinemaLayoutSeat.deleteMany({
+        where: { id: id },
+      });
+      return id;
     });
   }
 }

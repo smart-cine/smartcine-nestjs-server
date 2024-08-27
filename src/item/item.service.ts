@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { QueryItemDto } from './dto/QueryItem.dto';
 import {
@@ -6,15 +6,18 @@ import {
   genPaginationResponse,
 } from 'src/pagination/pagination.util';
 import { binaryToUuid } from 'src/utils/uuid';
-import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
 import { CreateItemDto } from './dto/CreateItem.dto';
 import { genId } from 'src/shared/genId';
-import { IdDto } from 'src/shared/id.dto';
 import { UpdateItemDto } from './dto/UpdateItem.dto';
+import { OwnershipService } from 'src/ownership/ownership.service';
+import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 
 @Injectable()
 export class ItemService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private ownershipService: OwnershipService,
+  ) {}
 
   async getItems(query: QueryItemDto) {
     const conditions = {};
@@ -45,53 +48,47 @@ export class ItemService {
     };
   }
 
-  async createItem(account: SessionAccount, body: CreateItemDto) {
-    console.log(body, body);
-    const item = await this.prismaService.item.create({
-      data: {
-        id: genId(),
-        parent_id: body.parent_id,
-        account_id: account.id,
-        cinema_provider_id: body.cinema_provider_id,
-        name: body.name,
-        price: body.price,
-        discount: body.discount,
-      },
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        discount: true,
-      },
+  async createItem(body: CreateItemDto, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(
+      body.cinema_id,
+      account.id,
+    );
+    const id = genId();
+
+    await this.ownershipService.createItem(async () => {
+      await this.prismaService.item.createMany({
+        data: {
+          id: id,
+          parent_id: body.parent_id,
+          cinema_id: body.cinema_id,
+          name: body.name,
+          price: body.price,
+          discount: body.discount,
+        },
+      });
+      return {
+        item_id: id,
+        parent_id: body.cinema_id,
+      };
     });
 
     return {
-      id: binaryToUuid(item.id),
-      name: item.name,
-      price: item.price,
-      discount: item.discount,
+      id: binaryToUuid(id),
+      name: body.name,
+      price: body.price,
+      discount: body.discount,
     };
   }
 
-  async updateItem(
-    account: SessionAccount,
-    id: IdDto['id'],
-    body: UpdateItemDto,
-  ) {
-    // TODO: Check if the item belongs to the business's provider
+  async updateItem(id: Buffer, body: UpdateItemDto, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     const item = await this.prismaService.item.update({
-      where: { id, account_id: account.id },
+      where: { id },
       data: {
         name: body.name,
         price: body.price,
         discount: body.discount,
-      },
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        discount: true,
       },
     });
 
@@ -103,9 +100,14 @@ export class ItemService {
     };
   }
 
-  async deleteItem(account: SessionAccount, id: IdDto['id']) {
-    await this.prismaService.item.delete({
-      where: { id, account_id: account.id },
+  async deleteItem(id: Buffer, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(id, account.id);
+
+    await this.ownershipService.deleteItem(async () => {
+      await this.prismaService.item.deleteMany({
+        where: { id },
+      });
+      return id;
     });
   }
 }

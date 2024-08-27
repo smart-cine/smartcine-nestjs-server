@@ -1,5 +1,4 @@
-import { SessionAccount } from './../account/dto/SessionAccount.dto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateFilmDto } from './dto/CreateFilm.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateFilmDto } from './dto/UpdateFilm.dto';
@@ -10,11 +9,15 @@ import {
   genPaginationResponse,
 } from 'src/pagination/pagination.util';
 import { QueryFilmDto } from './dto/QueryFilm.dto';
-import { IdDto } from 'src/shared/id.dto';
+import { OwnershipService } from 'src/ownership/ownership.service';
+import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 
 @Injectable()
 export class FilmService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private ownershipService: OwnershipService,
+  ) {}
 
   async getItems(query: QueryFilmDto) {
     const conditions = {};
@@ -38,7 +41,6 @@ export class FilmService {
     return {
       data: items.map((item) => ({
         id: binaryToUuid(item.id),
-        account_id: binaryToUuid(item.account_id),
         cinema_provider_id: binaryToUuid(item.cinema_provider_id),
         tags: item.tags.map((tag) => tag.tag.name),
         title: item.title,
@@ -57,7 +59,7 @@ export class FilmService {
     };
   }
 
-  async getItem(id: IdDto['id']) {
+  async getItem(id: Buffer) {
     const film = await this.prismaService.film.findUniqueOrThrow({
       where: { id },
       include: {
@@ -70,7 +72,6 @@ export class FilmService {
     });
     return {
       id: binaryToUuid(film.id),
-      account_id: binaryToUuid(film.account_id),
       cinema_provider_id: binaryToUuid(film.cinema_provider_id),
       tags: film.tags.map((tag) => tag.tag.name),
       title: film.title,
@@ -87,42 +88,74 @@ export class FilmService {
     };
   }
 
-  async createItem(account: SessionAccount, body: CreateFilmDto) {
-    const film_id = genId();
-    return await this.prismaService.$transaction([
-      this.prismaService.film.create({
-        data: {
-          id: film_id,
-          account_id: account.id,
-          cinema_provider_id: body.cinema_provider_id,
-          title: body.title,
-          director: body.director,
-          description: body.description,
-          release_date: body.release_date,
-          country: body.country,
-          restrict_age: body.restrict_age,
-          duration: body.duration,
-          picture_url: body.picture_url,
-          background_url: body.background_url,
-          trailer_url: body.trailer_url,
-          language: body.language,
-        },
-      }),
-      this.prismaService.tag.createMany({
-        data: body.tags.map((tag) => ({ name: tag })),
-        skipDuplicates: true,
-      }),
-      this.prismaService.filmsOnTags.createMany({
-        data: body.tags.map((tag) => ({
-          film_id: film_id,
-          tag_id: tag,
-        })),
-      }),
-    ]);
+  async createItem(body: CreateFilmDto, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(
+      body.cinema_provider_id,
+      account.id,
+    );
+
+    const id = genId();
+
+    await this.ownershipService.createItem(async () => {
+      await this.prismaService.$transaction([
+        this.prismaService.film.createMany({
+          data: {
+            id: id,
+            cinema_provider_id: body.cinema_provider_id,
+            title: body.title,
+            director: body.director,
+            description: body.description,
+            release_date: body.release_date,
+            country: body.country,
+            restrict_age: body.restrict_age,
+            duration: body.duration,
+            picture_url: body.picture_url,
+            background_url: body.background_url,
+            trailer_url: body.trailer_url,
+            language: body.language,
+          },
+        }),
+        this.prismaService.tag.createMany({
+          data: body.tags.map((tag) => ({ name: tag })),
+          skipDuplicates: true,
+        }),
+        this.prismaService.filmsOnTags.createMany({
+          data: body.tags.map((tag) => ({
+            film_id: id,
+            tag_id: tag,
+          })),
+          skipDuplicates: true,
+        }),
+      ]);
+
+      return {
+        item_id: id,
+        parent_id: body.cinema_provider_id,
+      };
+    });
+
+    return {
+      id: binaryToUuid(id),
+      cinema_provider_id: binaryToUuid(body.cinema_provider_id),
+      tags: body.tags,
+      title: body.title,
+      director: body.director,
+      description: body.description,
+      release_date: body.release_date,
+      country: body.country,
+      restrict_age: body.restrict_age,
+      duration: body.duration,
+      picture_url: body.picture_url,
+      background_url: body.background_url,
+      trailer_url: body.trailer_url,
+      language: body.language,
+    };
   }
 
-  updateItem(account: SessionAccount, id: IdDto['id'], body: UpdateFilmDto) {
-    return this.prismaService.film.update({
+  async updateItem(id: Buffer, body: UpdateFilmDto, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(id, account.id);
+
+    const item = await this.prismaService.film.update({
       where: { id },
       data: {
         title: body.title,
@@ -137,10 +170,37 @@ export class FilmService {
         trailer_url: body.trailer_url,
         language: body.language,
       },
+      include: {
+        tags: {
+          select: {
+            tag: true,
+          },
+        },
+      },
     });
+
+    return {
+      id: binaryToUuid(id),
+      tags: item.tags.map((tag) => tag.tag.name),
+      title: item.title,
+      director: item.director,
+      description: item.description,
+      release_date: item.release_date,
+      country: item.country,
+      restrict_age: item.restrict_age,
+      duration: item.duration,
+      picture_url: item.picture_url,
+      background_url: item.background_url,
+      trailer_url: item.trailer_url,
+    };
   }
 
-  deleteItem(account: SessionAccount, id: IdDto['id']) {
-    this.prismaService.film.delete({ where: { id } });
+  async deleteItem(id: Buffer, account: TAccountRequest) {
+    await this.ownershipService.checkAccountHasAccess(id, account.id);
+
+    await this.ownershipService.deleteItem(async () => {
+      await this.prismaService.film.delete({ where: { id } });
+      return id;
+    });
   }
 }

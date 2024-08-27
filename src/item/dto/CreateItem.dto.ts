@@ -18,7 +18,7 @@ export class CreateItemDto {
 
   @StringToBuffer()
   @IsNotEmpty()
-  cinema_provider_id: Buffer;
+  cinema_id: Buffer;
 
   @IsNotEmpty()
   name: string;

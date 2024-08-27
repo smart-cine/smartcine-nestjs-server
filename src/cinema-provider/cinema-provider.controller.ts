@@ -13,17 +13,13 @@ import { IdDto } from 'src/shared/id.dto';
 import { CreateCinemaProviderDto } from './dto/CreateCinemaProvider.dto';
 import { UpdateCinemaProviderDto } from './dto/UpdateCinemaProvider.dto';
 import { QueryCinemaProviderDto } from './dto/QueryCinemaProvider.dto';
-import { Permissions } from 'src/account/decorators/permissions.decorator';
-import { AccountRole, CinemaProviderPermission } from '@prisma/client';
+import { AccountRole, FeatureFlag } from '@prisma/client';
 import { Roles } from 'src/account/decorators/roles.decorator';
-import {
-  CinemaProviderRequest,
-  TCinemaProviderRequest,
-} from 'src/account/decorators/CinemaProviderRequest.decorator';
 import {
   AccountRequest,
   TAccountRequest,
 } from 'src/account/decorators/AccountRequest.decorator';
+import { Feature } from 'src/account/decorators/feature.decorator';
 
 @Controller('cinema-provider')
 export class CinemaProviderController {
@@ -40,38 +36,28 @@ export class CinemaProviderController {
   }
 
   @Roles([AccountRole.BUSINESS])
-  @Permissions()
   @Post()
   create(
     @Body() body: CreateCinemaProviderDto,
     @AccountRequest() account: TAccountRequest,
-    @CinemaProviderRequest()
-    cinemaProvider: TCinemaProviderRequest,
   ) {
-    if (cinemaProvider.cinema_provider_id) {
-      throw new Error('You already manage a cinema provider');
-    }
     return this.service.createItem(account, body);
   }
 
-  @Permissions(CinemaProviderPermission.ADMIN)
+  @Feature(FeatureFlag.UPDATE_CINEMA_PROVIDER)
+  @Roles([AccountRole.BUSINESS])
   @Patch()
   update(
     @Body() body: UpdateCinemaProviderDto,
-    @CinemaProviderRequest() cinemaProvider: TCinemaProviderRequest,
+    @AccountRequest() account: TAccountRequest,
   ) {
-    if (!cinemaProvider.cinema_provider_id) {
-      throw new Error('You do not manage any cinema provider');
-    }
-    return this.service.updateItem(cinemaProvider.cinema_provider_id, body);
+    return this.service.updateItem(body, account);
   }
 
-  @Permissions(CinemaProviderPermission.ADMIN)
+  @Feature(FeatureFlag.DELETE_CINEMA_PROVIDER)
+  @Roles([AccountRole.BUSINESS])
   @Delete()
-  delete(@CinemaProviderRequest() cinemaProvider: TCinemaProviderRequest) {
-    if (!cinemaProvider.cinema_provider_id) {
-      throw new Error('You do not manage any cinema provider');
-    }
-    return this.service.deleteItem(cinemaProvider.cinema_provider_id);
+  delete(@AccountRequest() account: TAccountRequest) {
+    return this.service.deleteItem(account);
   }
 }

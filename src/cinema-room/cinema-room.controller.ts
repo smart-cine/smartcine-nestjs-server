@@ -13,8 +13,13 @@ import { CreateCinemaRoomDto } from './dto/CreateCinemaRoom.dto';
 import { IdDto } from 'src/shared/id.dto';
 import { UpdateCinemaRoomDto } from './dto/UpdateCinemaRoom.dto';
 import { Roles } from 'src/account/decorators/roles.decorator';
-import { AccountRole } from '@prisma/client';
+import { AccountRole, FeatureFlag } from '@prisma/client';
 import { QueryCinemaRoomDto } from './dto/QueryCinemaRoom.dto';
+import { Feature } from 'src/account/decorators/feature.decorator';
+import {
+  AccountRequest,
+  TAccountRequest,
+} from 'src/account/decorators/AccountRequest.decorator';
 
 @Controller('cinema-room')
 @Roles([AccountRole.USER, AccountRole.BUSINESS])
@@ -31,21 +36,34 @@ export class CinemaRoomController {
     return this.service.getItem(params.id);
   }
 
+  @Feature(FeatureFlag.CREATE_CINEMA_ROOM)
+  @Roles([AccountRole.BUSINESS])
   @Post()
-  @Roles([AccountRole.BUSINESS])
-  async create(@Body() body: CreateCinemaRoomDto) {
-    return this.service.createItem(body);
+  async create(
+    @Body() body: CreateCinemaRoomDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.createItem(body, account);
   }
 
+  @Feature(FeatureFlag.UPDATE_CINEMA_ROOM)
+  @Roles([AccountRole.BUSINESS])
   @Patch(':id')
-  @Roles([AccountRole.BUSINESS])
-  async update(@Param() params: IdDto, @Body() body: UpdateCinemaRoomDto) {
-    return this.service.updateItem(params.id, body);
+  async update(
+    @Param() params: IdDto,
+    @Body() body: UpdateCinemaRoomDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.updateItem(params.id, body, account);
   }
 
-  @Delete(':id')
+  @Feature(FeatureFlag.DELETE_CINEMA_ROOM)
   @Roles([AccountRole.BUSINESS])
-  async delete(@Param() params: IdDto) {
-    return this.service.deleteItem(params.id);
+  @Delete(':id')
+  async delete(
+    @Param() params: IdDto,
+    @AccountRequest() account: TAccountRequest,
+  ) {
+    return this.service.deleteItem(params.id, account);
   }
 }

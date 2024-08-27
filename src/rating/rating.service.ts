@@ -8,10 +8,10 @@ import {
 } from 'src/pagination/pagination.util';
 import { IdDto } from 'src/shared/id.dto';
 import { binaryToUuid } from 'src/utils/uuid';
-import { SessionAccount } from 'src/account/dto/SessionAccount.dto';
 import { CreateRatingDto } from './dto/CreateRating.dto';
 import { genId } from 'src/shared/genId';
 import { UpdateRating } from './dto/UpdateRating.dto';
+import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 
 @Injectable()
 export class RatingService {
@@ -79,50 +79,40 @@ export class RatingService {
     };
   }
 
-  async createItem(account: SessionAccount, body: CreateRatingDto) {
-    const item = await this.prismaService.rating.create({
+  async createItem(body: CreateRatingDto, account: TAccountRequest) {
+    const id = genId();
+
+    await this.prismaService.rating.createMany({
       data: {
-        id: genId(),
+        id: id,
         account_id: account.id,
         score: body.score,
         type: body.type,
         ...this.getDestObject(body.type, body.dest_id),
       },
-      select: {
-        id: true,
-        score: true,
-      },
     });
 
     return {
-      id: binaryToUuid(item.id),
-      score: item.score,
+      id: binaryToUuid(id),
+      score: body.score,
     };
   }
 
-  async updateItem(
-    account: SessionAccount,
-    id: IdDto['id'],
-    body: UpdateRating,
-  ) {
-    const item = await this.prismaService.rating.update({
+  async updateItem(id: Buffer, body: UpdateRating, account: TAccountRequest) {
+    await this.prismaService.rating.updateMany({
       where: { id, account_id: account.id },
       data: {
         score: body.score,
       },
-      select: {
-        id: true,
-        score: true,
-      },
     });
 
     return {
-      id: binaryToUuid(item.id),
-      score: item.score,
+      id: binaryToUuid(id),
+      score: body.score,
     };
   }
 
-  async deleteItem(account: SessionAccount, id: IdDto['id']) {
+  async deleteItem(id: Buffer, account: TAccountRequest) {
     await this.prismaService.rating.delete({
       where: { id, account_id: account.id },
     });
