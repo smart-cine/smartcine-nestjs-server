@@ -26,7 +26,7 @@ model Account {
   name     String      @db.VarChar(255)
 
   payment          Payment[]
-  pickseats        PickSeat[]
+  pickseats        Pickseat[]
   ratings          Rating[]
   comments         Comment[]
   business_account BusinessAccount?
