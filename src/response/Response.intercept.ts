@@ -6,6 +6,7 @@ import {
   CallHandler,
   BadGatewayException,
   HttpException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -48,6 +49,15 @@ export class ResponseInterceptor implements NestInterceptor {
         catchError((err) => {
           const message = err?.message ?? 'Internal Server Error';
           const error_key = err?.error_key ?? ErrorKey.INTERNAL;
+          console.error(err);
+
+          if (err instanceof UnauthorizedException) {
+            return throwError(
+              () =>
+                new HttpException(`${ErrorKey.UNAUTHORIZED}:${message}`, 401),
+            );
+          }
+
           return throwError(
             () => new HttpException(`${error_key}:${message}`, 500),
           );

@@ -1,6 +1,6 @@
 import { ErrorKey } from '../constants/error-key';
 
-export class CustomError extends Error {
+export class ClientError extends Error {
   error_key: ErrorKey;
   constructor(message: string, error_key: ErrorKey = ErrorKey.INTERNAL) {
     super(message);
