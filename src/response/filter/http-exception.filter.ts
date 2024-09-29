@@ -20,6 +20,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const [error_key, ...messages] = exception.message.split(':');
 
     // Logger.error(`${request.method} ${request.url}`, exception.stack);
+    console.log(`${request.method} ${request.url}`, exception.stack);
 
     response.status(status).json({
       success: false,
