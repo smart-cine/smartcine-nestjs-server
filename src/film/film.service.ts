@@ -26,10 +26,28 @@ export class FilmService {
       items: await this.prismaService.film.findMany({
         ...genPaginationParams(query),
         ...conditions,
-        include: {
+        select: {
+          id: true,
+          cinema_provider_id: true,
           tags: {
             select: {
               tag: true,
+            },
+          },
+          title: true,
+          director: true,
+          description: true,
+          release_date: true,
+          country: true,
+          restrict_age: true,
+          duration: true,
+          picture_url: true,
+          background_url: true,
+          trailer_url: true,
+          language: true,
+          ratings: {
+            select: {
+              score: true,
             },
           },
         },
@@ -54,6 +72,10 @@ export class FilmService {
         background_url: item.background_url,
         trailer_url: item.trailer_url,
         language: item.language,
+        rating: {
+          score: item.ratings.reduce((acc, rating) => acc + rating.score, 0) / item.ratings.length || 0,
+          count: item.ratings.length,
+        }
       })),
       pagination,
     };
@@ -62,10 +84,28 @@ export class FilmService {
   async getItem(id: Buffer) {
     const film = await this.prismaService.film.findUniqueOrThrow({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        cinema_provider_id: true,
         tags: {
           select: {
             tag: true,
+          },
+        },
+        title: true,
+        director: true,
+        description: true,
+        release_date: true,
+        country: true,
+        restrict_age: true,
+        duration: true,
+        picture_url: true,
+        background_url: true,
+        trailer_url: true,
+        language: true,
+        ratings: {
+          select: {
+            score: true,
           },
         },
       },
@@ -85,6 +125,10 @@ export class FilmService {
       background_url: film.background_url,
       trailer_url: film.trailer_url,
       language: film.language,
+      rating: {
+        score: film.ratings.reduce((acc, rating) => acc + rating.score, 0) / film.ratings.length || 0,
+        count: film.ratings.length,
+      }
     };
   }
 
