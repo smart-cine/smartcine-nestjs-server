@@ -45,12 +45,24 @@ export class CinemaProviderService {
       query,
     });
 
+    // TODO: bad performance, need to optimize by using redis
+    const cinema_counts = await this.prismaService.cinema.groupBy({
+      by: ['cinema_provider_id'],
+      _count: {
+        id: true,
+      },
+    });
+
     return {
       data: items.map((item) => ({
         id: binaryToUuid(item.id),
         name: item.name,
         logo_url: item.logo_url,
         background_url: item.background_url,
+        country: item.country,
+        cinema_count: cinema_counts.find(
+          (count) => count.cinema_provider_id.equals(item.id),
+        )?._count.id || 0,
       })),
       pagination,
     };
@@ -73,11 +85,17 @@ export class CinemaProviderService {
       name: item.name,
       logo_url: item.logo_url,
       background_url: item.background_url,
+      country: item.country,
+      cinema_count: await this.prismaService.cinema.count({
+        where: {
+          cinema_provider_id: item.id,
+        },
+      }),
       rating: {
         score:
           item.ratings.reduce((acc, curr) => acc + curr.score, 0) /
-          item.ratings.length,
-        length: item.ratings.length,
+            item.ratings.length || 0,
+        count: item.ratings.length,
       },
     };
   }
@@ -95,6 +113,7 @@ export class CinemaProviderService {
         name: body.name,
         logo_url: body.logo_url,
         background_url: body.background_url,
+        country: body.country,
       },
     });
     await this.prismaService.ownership.createMany({

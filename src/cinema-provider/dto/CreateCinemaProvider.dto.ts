@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsUrl } from 'class-validator';
+import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
 
 export class CreateCinemaProviderDto {
   @IsNotEmpty()
@@ -11,4 +11,8 @@ export class CreateCinemaProviderDto {
   @IsUrl()
   @IsNotEmpty()
   background_url: string;
+
+  @IsString()
+  @IsNotEmpty()
+  country: string;
 }
