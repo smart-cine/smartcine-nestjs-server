@@ -47,7 +47,11 @@ export class PerformService {
       items: await this.prismaService.perform.findMany({
         ...genPaginationParams(query),
         ...conditions,
-        where: {},
+        where: {
+          room: {
+            cinema_id: query.cinema_id,
+          }
+        },
       }),
       total: await this.prismaService.perform.count({ ...conditions }),
       query,
