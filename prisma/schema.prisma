@@ -24,6 +24,7 @@ model Account {
   password String      @db.VarChar(100)
   role     AccountRole
   name     String      @db.VarChar(255)
+  avatar_url String     @db.VarChar(2083)
 
   payment          Payment[]
   pickseats        Pickseat[]
@@ -176,6 +177,7 @@ model CinemaProvider {
   name           String @unique @db.VarChar(50)
   logo_url       String @db.VarChar(2083)
   background_url String @db.VarChar(2083)
+  country        String @db.VarChar(50)
 
   ratings  Rating[]       @relation("RatingToCinemaProvider")
   comments Comment[]      @relation("CommentToCinemaProvider")
