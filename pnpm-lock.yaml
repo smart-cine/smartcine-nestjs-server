@@ -65,6 +65,9 @@ importers:
       moment:
         specifier: ^2.30.1
         version: 2.30.1
+      nestjs-real-ip:
+        specifier: ^3.0.1
+        version: 3.0.1(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -80,6 +83,12 @@ importers:
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
+      vietnam-qr-pay:
+        specifier: ^1.4.0
+        version: 1.4.0
+      vnpay:
+        specifier: ^1.6.0
+        version: 1.6.0
     devDependencies:
       '@mermaid-js/mermaid-cli':
         specifier: ^10.9.1
@@ -851,6 +860,9 @@ packages:
 
   '@sinonjs/fake-timers@10.3.0':
     resolution: {integrity: sha512-V4BG07kuYSUkTCSBHG8G8TNhM+F19jXFWnQtzj+we8DrkpSBCee9Z3Ms8yiGer/dlmhe35/Xdgyo3/0rQKg7YA==}
+
+  '@supercharge/request-ip@1.2.0':
+    resolution: {integrity: sha512-wlt6JW69MHqLY2M6Sm/jVyCojNRKq2CBvwH0Hbx24SFhDQQGkgEjeKxVutDxHSyrWixFaOSLXC27euzxijhyMQ==}
 
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
@@ -3059,6 +3071,9 @@ packages:
   module-details-from-path@1.0.3:
     resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
 
+  moment-timezone@0.5.45:
+    resolution: {integrity: sha512-HIWmqA86KcmCAhnMAN0wuDOARV/525R2+lOLotuGFzn4HO+FH+/645z2wx0Dt3iDv6/p61SIvKnDstISainhLQ==}
+
   moment@2.30.1:
     resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
 
@@ -3095,6 +3110,11 @@ packages:
 
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
+
+  nestjs-real-ip@3.0.1:
+    resolution: {integrity: sha512-vsBlvXBWXg+GorIoXmTasNaJZyeBpTypgnrq1jk9xOEL7FGv9ZFBafyhllliNbSuCDpwxeC7Sxc6hBk8onPXUg==}
+    peerDependencies:
+      '@nestjs/common': '>=8'
 
   new-github-issue-url@0.2.1:
     resolution: {integrity: sha512-md4cGoxuT4T4d/HDOXbrUHkTKrp/vp+m3aOA7XXVYwNsUNMK49g3SQicTSeV5GIz/5QVGAeYRAOlyp9OvlgsYA==}
@@ -4073,6 +4093,12 @@ packages:
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
+
+  vietnam-qr-pay@1.4.0:
+    resolution: {integrity: sha512-jjmKk24XyqHTps2NbTOTy5NNFmsumEwpY4cVEvAA117/1pcHxjf60iIqh8lNrhmouD3HuQkt7TVUCizL5wWMAw==}
+
+  vnpay@1.6.0:
+    resolution: {integrity: sha512-+y1tdsJ1ClPC0cVGCG6v5lDi5rZZSzfUe1I670d4tqzxvHdgPbgmrYuH4LpLOEuiFs0Nwum9Thw7DfWgbztjBA==}
 
   walker@1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
@@ -5202,6 +5228,8 @@ snapshots:
   '@sinonjs/fake-timers@10.3.0':
     dependencies:
       '@sinonjs/commons': 3.0.1
+
+  '@supercharge/request-ip@1.2.0': {}
 
   '@tsconfig/node10@1.0.11': {}
 
@@ -7874,6 +7902,10 @@ snapshots:
 
   module-details-from-path@1.0.3: {}
 
+  moment-timezone@0.5.45:
+    dependencies:
+      moment: 2.30.1
+
   moment@2.30.1: {}
 
   mri@1.2.0: {}
@@ -7903,6 +7935,11 @@ snapshots:
   negotiator@0.6.3: {}
 
   neo-async@2.6.2: {}
+
+  nestjs-real-ip@3.0.1(@nestjs/common@10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)):
+    dependencies:
+      '@nestjs/common': 10.3.10(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      '@supercharge/request-ip': 1.2.0
 
   new-github-issue-url@0.2.1: {}
 
@@ -8865,6 +8902,12 @@ snapshots:
   validator@13.12.0: {}
 
   vary@1.1.2: {}
+
+  vietnam-qr-pay@1.4.0: {}
+
+  vnpay@1.6.0:
+    dependencies:
+      moment-timezone: 0.5.45
 
   walker@1.0.8:
     dependencies:
