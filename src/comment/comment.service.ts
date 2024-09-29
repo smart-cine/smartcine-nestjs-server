@@ -72,7 +72,7 @@ export class CommentService {
           score:
             item.ratings.reduce((acc, rating) => acc + rating.score, 0) /
             item.ratings.length,
-          amount: item.ratings.length,
+          count: item.ratings.length,
         },
       })),
       pagination,
@@ -84,6 +84,7 @@ export class CommentService {
       where: { id },
       select: {
         id: true,
+        account_id: true,
         body: true,
         ratings: {
           select: {
@@ -93,6 +94,7 @@ export class CommentService {
         comments: {
           select: {
             id: true,
+            account_id: true,
             body: true,
           },
         },
@@ -101,15 +103,17 @@ export class CommentService {
 
     return {
       id: binaryToUuid(item.id),
+      account_id: binaryToUuid(item.account_id),
       body: item.body,
       rating: {
         score:
           item.ratings.reduce((acc, rating) => acc + rating.score, 0) /
           item.ratings.length,
-        amount: item.ratings.length,
+        count: item.ratings.length,
       },
       children: item.comments.map((comment) => ({
         id: binaryToUuid(comment.id),
+        account_id: binaryToUuid(comment.account_id),
         body: comment.body,
       })),
     };
