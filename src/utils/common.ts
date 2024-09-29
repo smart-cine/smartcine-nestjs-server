@@ -1,3 +1,5 @@
+import * as crypto from 'crypto';
+
 export function convertJwtExpireToSeconds(expire: string): number {
   // JWT_EXPIRES_IN = 10s, 60s, 1m, 1h, 1d, 1w, 1y
   const time = expire.match(/\d+/g);
@@ -25,4 +27,12 @@ export function convertJwtExpireToSeconds(expire: string): number {
     default:
       return 0;
   }
+}
+
+export function hash(
+  secret: string,
+  data: crypto.BinaryLike,
+  algorithm: 'SHA256' | 'SHA512' | 'MD5' = 'SHA256',
+): string {
+  return crypto.createHmac(algorithm, secret).update(data).digest('hex');
 }
