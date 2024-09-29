@@ -3,7 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginAccount } from './dto/LoginAccount.dto';
 import { RegisterAccount } from './dto/RegisterAccount.dto';
 import { genId } from 'src/shared/genId';
-import { hash } from 'src/utils/hash';
 import * as bcrypt from 'bcrypt';
 import { binaryToUuid } from 'src/utils/uuid';
 import { RedisService } from 'src/redis/redis.service';
@@ -24,6 +23,10 @@ export class AccountService {
     private jwtService: JwtService,
   ) {}
 
+  async hash(password: string) {
+    return bcrypt.hash(password, 10);
+  }
+
   async generateToken(payload: TAccountRequest) {
     return await this.jwtService.signAsync({
       id: binaryToUuid(payload.id),
@@ -36,9 +39,10 @@ export class AccountService {
       data: {
         id: genId(),
         email: data.email,
-        password: await hash(data.password),
+        password: await this.hash(data.password),
         role: data.role,
         name: data.name,
+        avatar_url: data.avatar_url,
       },
       select: {
         id: true,
@@ -160,5 +164,22 @@ export class AccountService {
       `blacklist:${token}`,
       String(ttl),
     ]);
+  }
+
+  async getItem(id: Buffer) {
+    const item = await this.prismaService.account.findUniqueOrThrow({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        avatar_url: true,
+      },
+    });
+
+    return {
+      id: binaryToUuid(item.id),
+      name: item.name,
+      avatar_url: item.avatar_url,
+    }
   }
 }
