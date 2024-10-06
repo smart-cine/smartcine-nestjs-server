@@ -444,6 +444,7 @@ async function init(prisma: PrismaClient) {
               min: 0,
               max: 100,
             }) / 100,
+          image_url: faker.image.url(),
         })),
       )
       .flat(),
@@ -478,7 +479,6 @@ async function init(prisma: PrismaClient) {
   //     );
   //   }),
   // );
-
 
   await prisma.perform.createMany({
     data: films

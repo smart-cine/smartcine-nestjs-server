@@ -35,6 +35,7 @@ Table item {
   name String [not null]
   price Decimal [not null]
   discount Float [not null, default: 0]
+  image_url String [not null]
   payments _item_payment [not null]
   items item [not null]
   parent item

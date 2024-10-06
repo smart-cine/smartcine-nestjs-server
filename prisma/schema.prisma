@@ -56,11 +56,12 @@ model BusinessAccount {
 model Item {
   id        Bytes  @id @db.Binary(16)
   parent_id Bytes? @db.Binary(16) // If this item is a combo, this field will be filled
-  cinema_id Bytes  @db.Binary(16) // Create for which cinema provider?
+  cinema_id Bytes  @db.Binary(16) // Create for which cinema?
 
   name     String  @db.VarChar(255)
   price    Decimal @db.Decimal(10, 2)
   discount Float   @default(0) @db.Float
+  image_url String  @db.VarChar(2083)
 
   payments ItemsOnPayments[]
   items    Item[]            @relation("NestedItemSystem")
