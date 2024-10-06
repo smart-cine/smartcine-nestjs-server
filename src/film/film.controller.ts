@@ -27,9 +27,15 @@ export class FilmController {
 
   @Roles([AccountRole.BUSINESS, AccountRole.USER])
   @Get()
-  async getItems(@Query() pagination: PaginationQueryDto) {
-    return this.service.getItems(pagination);
+  async getItems(@Query() query: PaginationQueryDto) {
+    return this.service.getItems(query);
   }
+
+  @Roles([AccountRole.BUSINESS, AccountRole.USER])
+  @Get('top')
+  async getTopItems(@Query() query: PaginationQueryDto) {
+    return this.service.getTopItems(query);
+  } 
 
   @Roles([AccountRole.BUSINESS, AccountRole.USER])
   @Get(':id')

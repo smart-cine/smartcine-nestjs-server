@@ -11,6 +11,7 @@ import {
 import { QueryFilmDto } from './dto/QueryFilm.dto';
 import { OwnershipService } from 'src/ownership/ownership.service';
 import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
+import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class FilmService {
@@ -18,6 +19,7 @@ export class FilmService {
     private prismaService: PrismaService,
     private ownershipService: OwnershipService,
   ) {}
+  
 
   async getItems(query: QueryFilmDto) {
     const conditions = {};
@@ -80,6 +82,27 @@ export class FilmService {
       pagination,
     };
   }
+
+  async getTopItems(query: QueryFilmDto) {
+    const conditions: Prisma.FilmWhereInput = {};
+
+    const [items, pagination] = genPaginationResponse({
+      items: await this.prismaService.film.findMany({
+        ...genPaginationParams(query, conditions),
+        select: {
+          id: true,
+        },
+      }),
+      total: await this.prismaService.film.count({ where: conditions }),
+      query,
+    });
+
+    return {
+      data: items.map((item) => (binaryToUuid(item.id))),
+      pagination,
+    };
+  }
+  
 
   async getItem(id: Buffer) {
     const film = await this.prismaService.film.findUniqueOrThrow({
