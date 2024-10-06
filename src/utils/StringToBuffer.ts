@@ -4,7 +4,7 @@ import { uuidToBinary } from './uuid';
 export function StringToBuffer() {
   return Transform(({ value }) => {
     if (!value) {
-      throw new Error('Value must not be empty');
+      return ""
     }
     if (typeof value !== 'string') {
       throw new Error('Value must be a string');
