@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   Max,
   Min,
 } from 'class-validator';
@@ -31,4 +32,7 @@ export class CreateItemDto {
   @Max(1)
   @Transform(({ value }) => parseFloat(value))
   discount: number;
+
+  @IsUrl()
+  image_url: string;
 }

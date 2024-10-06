@@ -11,6 +11,7 @@ import { genId } from 'src/shared/genId';
 import { UpdateItemDto } from './dto/UpdateItem.dto';
 import { OwnershipService } from 'src/ownership/ownership.service';
 import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
+import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class ItemService {
@@ -20,20 +21,31 @@ export class ItemService {
   ) {}
 
   async getItems(query: QueryItemDto) {
-    const conditions = {};
+    const conditions: Prisma.ItemWhereInput = {
+      cinema_id: query.cinema_id,
+    };
 
     const [items, pagination] = genPaginationResponse({
       items: await this.prismaService.item.findMany({
-        ...genPaginationParams(query),
-        ...conditions,
+        ...genPaginationParams(query, conditions),
         select: {
           id: true,
           name: true,
           price: true,
           discount: true,
+          image_url: true,
+          items: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              discount: true,
+              image_url: true,
+            }
+          },
         },
       }),
-      total: await this.prismaService.item.count({ ...conditions }),
+      total: await this.prismaService.item.count({ where: conditions }),
       query,
     });
 
@@ -43,6 +55,8 @@ export class ItemService {
         name: item.name,
         price: item.price,
         discount: item.discount,
+        image_url: item.image_url,
+        items: item.items,
       })),
       pagination,
     };
@@ -64,6 +78,7 @@ export class ItemService {
           name: body.name,
           price: body.price,
           discount: body.discount,
+          image_url: body.image_url,
         },
       });
       return {
