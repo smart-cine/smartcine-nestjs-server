@@ -25,7 +25,7 @@ export class PaymentService {
     account: TAccountRequest,
     ip: string,
   ) {
-    const query = await this.prismaService.perform.findUnique({
+    const perform = await this.prismaService.perform.findUnique({
       where: {
         id: body.perform_id,
       },
@@ -54,17 +54,30 @@ export class PaymentService {
         price: true,
       },
     });
-    // console.log(query);
-    if (!query?.room.cinema.banks[0]) {
+    console.log(perform);
+    if (!perform?.room.cinema.banks[0]) {
       throw new Error('Bank not found');
     }
 
-    const business_bank_id = query.room.cinema.banks[0].business_bank_id;
-    const data = query.room.cinema.banks[0].bank.data;
+    const items = await this.prismaService.item.findMany({
+      where: {
+        id: {
+          in: body.items.map((item) => item.id),
+        },
+      },
+      select: {
+        price: true,
+      }
+    });
+
+    const business_bank_id = perform.room.cinema.banks[0].business_bank_id;
+    const data = perform.room.cinema.banks[0].bank.data;
     const validated = plainToInstance(VNPAYDto, data);
     await validateOrReject(validated);
 
     const id = genId();
+    const amount = perform.price.toNumber() + items.reduce((acc, item) => acc + item.price.toNumber(), 0);
+    console.log("Am,ount", amount, items.reduce((acc, item) => acc + item.price.toNumber(), 0));
 
     await this.prismaService.payment.createMany({
       data: {
@@ -82,7 +95,7 @@ export class PaymentService {
     return this.vnpayWalletService.createPayment({
       id: id,
       ip: ip,
-      amount: query.price.toNumber(),
+      amount: amount,
       data: validated,
     });
   }

@@ -1,5 +1,12 @@
 import { WalletType } from '@prisma/client';
-import { IsEnum, IsNotEmpty } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  ValidateNested,
+} from 'class-validator';
 import { StringToBuffer } from 'src/utils/StringToBuffer';
 
 export class CreatePaymentDto {
@@ -7,11 +14,23 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   perform_id: Buffer;
 
-  @StringToBuffer()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ItemPayment)
   @IsNotEmpty()
-  item_id: Buffer;
+  items: ItemPayment[];
 
   @IsEnum(WalletType)
   @IsNotEmpty()
   type: WalletType;
+}
+
+class ItemPayment {
+  @StringToBuffer()
+  @IsNotEmpty()
+  id: Buffer;
+
+  @IsInt()
+  @IsNotEmpty()
+  quantity: number;
 }
