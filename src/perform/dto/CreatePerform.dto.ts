@@ -1,6 +1,6 @@
 import { PerformTranslateType, PerformViewType } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsDateString, IsDecimal, IsEnum, IsNotEmpty } from 'class-validator';
+import { IsDate, IsDateString, IsDecimal, IsEnum, IsNotEmpty } from 'class-validator';
 import { StringToBuffer } from 'src/utils/StringToBuffer';
 
 export class CreatePerformDto {
@@ -13,11 +13,11 @@ export class CreatePerformDto {
   cinema_room_id: Buffer;
 
   @Transform(({ value }) => new Date(value))
-  @IsDateString()
+  @IsDate()
   start_time: Date;
 
   @Transform(({ value }) => new Date(value))
-  @IsDateString()
+  @IsDate()
   end_time: Date;
 
   @IsEnum(PerformTranslateType)

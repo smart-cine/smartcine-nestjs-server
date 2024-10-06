@@ -1,6 +1,7 @@
 import { PerformTranslateType, PerformViewType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
+  IsDate,
   IsDateString,
   IsDecimal,
   IsEnum,
@@ -16,7 +17,7 @@ export class UpdatePerformDto {
   start_time?: Date;
 
   @Transform(({ value }) => new Date(value))
-  @IsDateString()
+  @IsDate()
   @IsOptional()
   end_time?: Date;
 

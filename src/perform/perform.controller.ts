@@ -11,7 +11,7 @@ import { PerformService } from './perform.service';
 import { IdDto } from 'src/shared/id.dto';
 import { CreatePerformDto } from './dto/CreatePerform.dto';
 import { UpdatePerformDto } from './dto/UpdatePerform.dto';
-import { QueryPerformDto } from './dto/QueryPerform.dto';
+
 import {
   AccountRequest,
   TAccountRequest,
@@ -19,14 +19,26 @@ import {
 import { Roles } from 'src/account/decorators/roles.decorator';
 import { AccountRole, FeatureFlag } from '@prisma/client';
 import { Feature } from 'src/account/decorators/feature.decorator';
+import { QueryPerformListCinemaDto } from './dto/QueryPerformListCinema.dto'
+import { QueryPerformListFilmDto } from './dto/QueryPerformListFilm.dto'
 
 @Controller('perform')
 export class PerformController {
   constructor(private service: PerformService) {}
 
-  @Get()
-  getAll(@Query() query: QueryPerformDto) {
-    return this.service.getItems(query);
+  // @Get('top')
+  // getTopPerform(@Query() query: QueryTopPerformDto) {
+  //   return this.service.getTopPerform(query);
+  // }
+
+  @Get('list-cinema')
+  getAllListCinema(@Query() query: QueryPerformListCinemaDto) {
+    return this.service.getItemsListCinema(query);
+  }
+
+  @Get('list-film')
+  getAllListFilm(@Query() query: QueryPerformListFilmDto) {
+    return this.service.getItemsListFilm(query);
   }
 
   @Get(':id')

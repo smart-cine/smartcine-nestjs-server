@@ -2,7 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePerformDto } from './dto/CreatePerform.dto';
 import { genId } from 'src/shared/genId';
-import { QueryPerformDto } from './dto/QueryPerform.dto';
+import { QueryPerformListCinemaDto } from './dto/QueryPerformListCinema.dto';
+import { QueryPerformListFilmDto } from './dto/QueryPerformListFilm.dto'
 import {
   genPaginationParams,
   genPaginationResponse,
@@ -11,6 +12,7 @@ import { binaryToUuid } from 'src/utils/uuid';
 import { UpdatePerformDto } from './dto/UpdatePerform.dto';
 import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 import { OwnershipService } from 'src/ownership/ownership.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PerformService {
@@ -31,42 +33,123 @@ export class PerformService {
     return film.cinema_provider_id;
   }
 
-  async getItems(query: QueryPerformDto) {
-    const conditions = {
-      // TODO: add somethign here
-      // where: query.cinema_id
-      //   ? {
-      //       room: {
-      //         cinema_id: query.cinema_id,
-      //       },
-      //     }
-      //   : undefined,
+  async getItemsListCinema(query: QueryPerformListCinemaDto) {
+    const conditions: Prisma.CinemaWhereInput = {
+      cinema_provider_id: query.cinema_provider_id,
+      rooms: {
+        some: {
+          performs: {
+            some: {
+              film_id: query.film_id,
+              start_time: {
+                gte: query.start_time,
+              },
+            },
+          },
+        }
+      }
     };
 
     const [items, pagination] = genPaginationResponse({
-      items: await this.prismaService.perform.findMany({
-        ...genPaginationParams(query),
-        ...conditions,
-        where: {
-          room: {
-            cinema_id: query.cinema_id,
+      items: await this.prismaService.cinema.findMany({
+        ...genPaginationParams(query, conditions),
+        select: {
+          id: true,
+          rooms: {
+            select: {
+              performs: {
+                select: {
+                  id: true,
+                  film_id: true,
+                  cinema_room_id: true,
+                  start_time: true,
+                  end_time: true,
+                  translate_type: true,
+                  view_type: true,
+                  price: true,
+                },
+                where: conditions.rooms?.some?.performs?.some,
+              },
+            },
+            where: conditions.rooms?.some,
           }
-        },
+        }
       }),
-      total: await this.prismaService.perform.count({ ...conditions }),
+      total: await this.prismaService.cinema.count({ where: conditions }),
       query,
     });
 
     return {
       data: items.map((item) => ({
-        id: binaryToUuid(item.id),
-        film_id: binaryToUuid(item.film_id),
-        cinema_room_id: binaryToUuid(item.cinema_room_id),
-        start_time: item.start_time,
-        end_time: item.end_time,
-        translate_type: item.translate_type,
-        view_type: item.view_type,
-        price: item.price,
+        cinema_id: binaryToUuid(item.id),
+        performs: item.rooms.flatMap((room) => room.performs).map((perform) => ({
+          id: binaryToUuid(perform.id),
+          film_id: binaryToUuid(perform.film_id),
+          cinema_id: binaryToUuid(query.cinema_provider_id),
+          cinema_room_id: binaryToUuid(perform.cinema_room_id),
+          start_time: perform.start_time,
+          end_time: perform.end_time,
+          translate_type: perform.translate_type,
+          view_type: perform.view_type,
+          price: perform.price,
+        })),
+      })),
+      pagination,
+    };
+  }
+
+  async getItemsListFilm(query: QueryPerformListFilmDto) {
+    const conditions: Prisma.FilmWhereInput = {
+      // TODO: filter area here
+      performs: {
+        some: {
+          room: {
+            cinema_id: query.cinema_id,
+          },
+          start_time: {
+            gte: query.start_time,
+          },
+        },
+      },
+    };
+
+    const [items, pagination] = genPaginationResponse({
+      items: await this.prismaService.film.findMany({
+        ...genPaginationParams(query, conditions),
+        select: {
+          id: true,
+          performs: {
+            select: {
+              id: true,
+              cinema_room_id: true,
+              start_time: true,
+              end_time: true,
+              translate_type: true,
+              view_type: true,
+              price: true,
+            },
+            where: conditions.performs?.some,
+          },
+        }
+      }),
+      total: await this.prismaService.film.count({ where: conditions }),
+      query,
+    });
+
+    return {
+      data: items.map((item) => ({
+        film_id: binaryToUuid(item.id),
+        performs: item.performs.map((perform) => ({
+          id: binaryToUuid(perform.id),
+          film_id: binaryToUuid(item.id),
+          cinema_id: binaryToUuid(query.cinema_id),
+          cinema_room_id: binaryToUuid(perform.cinema_room_id),
+          start_time: perform.start_time,
+          end_time: perform.end_time,
+          translate_type: perform.translate_type,
+          view_type: perform.view_type,
+          price: perform.price,
+        })),
       })),
       pagination,
     };
@@ -77,11 +160,27 @@ export class PerformService {
       where: {
         id,
       },
+      select: {
+        id: true,
+        film_id: true,
+        cinema_room_id: true,
+        start_time: true,
+        end_time: true,
+        translate_type: true,
+        view_type: true,
+        price: true,
+        room: {
+          select: {
+            cinema_id: true,
+          }
+        }
+      }
     });
     return {
       id: binaryToUuid(item.id),
       film_id: binaryToUuid(item.film_id),
       cinema_room_id: binaryToUuid(item.cinema_room_id),
+      cinema_id: binaryToUuid(item.room.cinema_id),
       start_time: item.start_time,
       end_time: item.end_time,
       translate_type: item.translate_type,
