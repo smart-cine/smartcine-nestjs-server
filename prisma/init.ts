@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { PaymentController } from './../src/payment/payment.controller';
+import { PaymentController } from '../src/modules/payment/payment.controller';
 import {
   PrismaClient,
   AccountRole,
