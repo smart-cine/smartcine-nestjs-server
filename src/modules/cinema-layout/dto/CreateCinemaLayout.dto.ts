@@ -5,7 +5,7 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class CreateCinemaLayoutDto {
   @StringToBuffer()
   @IsOptional()
-  room_id?: Buffer;
+  room_id?: Uint8Array;
 
   @Min(1)
   @Max(20)

@@ -15,6 +15,6 @@ export const AccountRequest = createParamDecorator(
 );
 
 export type TAccountRequest = {
-  id: Buffer;
+  id: Uint8Array;
   role: AccountRole;
 };

@@ -5,5 +5,5 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class QueryCinemaDto extends PaginationQueryDto {
   @StringToBuffer()
   @IsOptional()
-  provider_id?: Buffer;
+  provider_id?: Uint8Array;
 }

@@ -23,8 +23,8 @@ export class CinemaLayoutService {
 
   public async cloneLayout(
     tx: Prisma.TransactionClient,
-    layout_id: Buffer,
-    room_id?: Buffer,
+    layout_id: Uint8Array,
+    room_id?: Uint8Array,
   ) {
     console.time('findUnique layout');
     const item = await this.prismaService.cinemaLayout.findUniqueOrThrow({
@@ -43,9 +43,9 @@ export class CinemaLayoutService {
     item.layout_seats.forEach((seat) => {
       newSeatIdMap.set(binaryToUuid(seat.id), binaryToUuid(genId()));
     });
-    const getNewGroupId = (id: Buffer) =>
+    const getNewGroupId = (id: Uint8Array) =>
       uuidToBinary(newGroupIdMap.get(binaryToUuid(id))!);
-    const getNewSeatId = (id: Buffer) =>
+    const getNewSeatId = (id: Uint8Array) =>
       uuidToBinary(newSeatIdMap.get(binaryToUuid(id))!);
 
     await this.ownershipService.createItem(async () => {
@@ -147,7 +147,7 @@ export class CinemaLayoutService {
     };
   }
 
-  private async getProviderId(account_id: Buffer) {
+  private async getProviderId(account_id: Uint8Array) {
     //! Must have feature-flag guard in the controller to check if the user has the right role
     const { item_id } = await this.prismaService.ownership.findUniqueOrThrow({
       where: {
@@ -190,7 +190,7 @@ export class CinemaLayoutService {
     };
   }
 
-  async getItem(id: Buffer, account: TAccountRequest) {
+  async getItem(id: Uint8Array, account: TAccountRequest) {
     const item = await this.prismaService.cinemaLayout.findUniqueOrThrow({
       where: { id },
       include: { layout_seats: true, layout_groups: true },
@@ -277,7 +277,7 @@ export class CinemaLayoutService {
   }
 
   async updateItem(
-    id: Buffer,
+    id: Uint8Array,
     body: UpdateCinemaLayoutDto,
     account: TAccountRequest,
   ) {
@@ -305,7 +305,7 @@ export class CinemaLayoutService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     await this.ownershipService.deleteItem(async () => {

@@ -8,7 +8,7 @@ export class CreateCommentDto {
 
   @StringToBuffer()
   @IsNotEmpty()
-  dest_id: Buffer;
+  dest_id: Uint8Array;
 
   @IsNotEmpty()
   body: string;

@@ -12,12 +12,13 @@ import {
 import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
 import { OwnershipService } from 'src/common/ownership/ownership.service';
 import { BusinessRole, Prisma } from '@prisma/client';
+import { isEqualBytes } from 'src/utils/common'
 
 @Injectable()
 export class CinemaProviderService {
   constructor(private prismaService: PrismaService) {}
 
-  private async getProviderId(account_id: Buffer) {
+  private async getProviderId(account_id: Uint8Array) {
     const query = await this.prismaService.ownership.findFirst({
       where: {
         owner_id: account_id,
@@ -69,7 +70,7 @@ export class CinemaProviderService {
         background_url: item.background_url,
         country: item.country,
         cinema_count: cinema_counts.find(
-          (count) => count.cinema_provider_id.equals(item.id),
+          (count) => isEqualBytes(count.cinema_provider_id, item.id),
         )?._count.id || 0,
         rating: {
           score:
@@ -82,7 +83,7 @@ export class CinemaProviderService {
     };
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: Uint8Array) {
     const item = await this.prismaService.cinemaProvider.findUniqueOrThrow({
       where: { id },
       include: {

@@ -18,7 +18,7 @@ export class PaginationQueryDto {
   @StringToBuffer()
   @IsNotEmpty()
   @IsOptional()
-  cursor?: Buffer;
+  cursor?: Uint8Array;
 
   @IsPositive()
   @Type(() => Number)

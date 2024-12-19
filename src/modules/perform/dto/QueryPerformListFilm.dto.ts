@@ -6,7 +6,7 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class QueryPerformListFilmDto extends PaginationQueryDto {
   @StringToBuffer()
   @IsNotEmpty()
-  cinema_id: Buffer;
+  cinema_id: Uint8Array;
 
   @Transform(({ value }) => new Date(value))
   @IsDate()

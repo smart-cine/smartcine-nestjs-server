@@ -46,7 +46,7 @@ export class CinemaRoomService {
     };
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: Uint8Array) {
     const item = await this.prismaService.cinemaRoom.findUniqueOrThrow({
       where: { id },
       include: {
@@ -91,7 +91,7 @@ export class CinemaRoomService {
       account.id,
     );
 
-    let cinema_layout_id!: Buffer;
+    let cinema_layout_id!: Uint8Array;
     const room_id = genId();
 
     await this.prismaService.$transaction(async (tx) => {
@@ -159,7 +159,7 @@ export class CinemaRoomService {
   }
 
   async updateItem(
-    id: Buffer,
+    id: Uint8Array,
     body: UpdateCinemaRoomDto,
     account: TAccountRequest,
   ) {
@@ -179,7 +179,7 @@ export class CinemaRoomService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
     await this.prismaService.cinemaRoom.deleteMany({ where: { id } });
   }

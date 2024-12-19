@@ -5,7 +5,7 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class JwtPayloadDto {
   @StringToBuffer()
   @IsNotEmpty()
-  id: Buffer;
+  id: Uint8Array;
 
   @IsEnum(AccountRole)
   role: AccountRole;

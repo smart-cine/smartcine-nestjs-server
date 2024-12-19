@@ -13,10 +13,10 @@ export function IsBuffer(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          return Buffer.isBuffer(value);
+          return value instanceof Uint8Array;
         },
         defaultMessage(args: ValidationArguments) {
-          return `${args.property} must be a Buffer`;
+          return `${args.property} must be a Uint8Array`;
         },
       },
     });

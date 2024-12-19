@@ -1,7 +1,7 @@
 import { HashAlgorithm } from '../enum/HashAlgorithm.enum';
 
 export type TPaymentInfo<T> = {
-  id: Buffer;
+  id: Uint8Array;
   ip: string;
   amount: number;
   data: T;

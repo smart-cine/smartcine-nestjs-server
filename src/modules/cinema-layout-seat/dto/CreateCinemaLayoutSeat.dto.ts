@@ -5,11 +5,11 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class CreateCinemaLayoutSeatDto {
   @StringToBuffer()
   @IsNotEmpty()
-  layout_id: Buffer;
+  layout_id: Uint8Array;
 
   @StringToBuffer()
   @IsNotEmpty()
-  group_id: Buffer;
+  group_id: Uint8Array;
 
   @Min(0)
   @Max(19)

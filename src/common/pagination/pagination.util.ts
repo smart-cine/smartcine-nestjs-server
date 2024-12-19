@@ -1,7 +1,7 @@
 import { binaryToUuid } from 'src/utils/uuid';
 import { PaginationQueryDto } from './PaginationQuery.dto';
 
-export function genPaginationResponse<T extends { id: Buffer }>({
+export function genPaginationResponse<T extends { id: Uint8Array }>({
   items,
   query,
   total,
@@ -81,7 +81,7 @@ export function genPaginationParams<T extends Record<string, any>>(
 
 export function parsePaginationQuery(pagination: PaginationQueryDto): {
   page: number;
-  cursor?: Buffer;
+  cursor?: Uint8Array;
   limit: number;
   sort: { field: string; by: 'asc' | 'desc' }[];
   search: { field: string; value: string }[];

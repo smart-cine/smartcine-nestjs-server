@@ -9,5 +9,5 @@ export class QueryRatingDto extends PaginationQueryDto {
 
   @StringToBuffer()
   @IsNotEmpty()
-  dest_id: Buffer;
+  dest_id: Uint8Array;
 }

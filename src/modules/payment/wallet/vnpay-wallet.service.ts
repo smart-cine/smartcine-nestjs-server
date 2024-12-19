@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { HashAlgorithm } from '../enum/HashAlgorithm.enum';
-import { hash } from 'src/utils/common';
+import { hash, hexToUint8Array } from 'src/utils/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { genId } from 'src/shared/genId';
@@ -101,7 +101,7 @@ export class VNPAYWalletService implements WalletInterface<VNPAYDto> {
     secureSecret: string,
     hashAlgorithm: HashAlgorithm = HashAlgorithm.SHA512,
   ): string {
-    return hash(secureSecret, Buffer.from(data, 'utf-8'), hashAlgorithm);
+    return hash(secureSecret, hexToUint8Array(data), hashAlgorithm);
   }
 
   verifySecureHash(

@@ -8,11 +8,11 @@ export class CreateCinemaRoomDto extends PartialType(
 ) {
   @StringToBuffer()
   @IsNotEmpty()
-  cinema_id: Buffer;
+  cinema_id: Uint8Array;
 
   @StringToBuffer()
   @IsOptional()
-  cinema_layout_id?: Buffer;
+  cinema_layout_id?: Uint8Array;
 
   @IsNotEmpty()
   name: string;

@@ -39,8 +39,8 @@ function createWithOwnershipTree<
 >(
   model: ModelName,
   treeData: {
-    parent_id: Buffer;
-    child_id: Buffer;
+    parent_id: Uint8Array;
+    child_id: Uint8Array;
   },
 ) {
   // @ts-ignore
@@ -355,9 +355,9 @@ async function init(prisma: PrismaClient) {
           };
         })
         .filter((x) => x) as {
-        id: Buffer;
-        cinema_layout_id: Buffer;
-        group_id: Buffer;
+        id: Uint8Array;
+        cinema_layout_id: Uint8Array;
+        group_id: Uint8Array;
         x: number;
         y: number;
         code: string;

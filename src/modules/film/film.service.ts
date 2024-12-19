@@ -163,7 +163,7 @@ export class FilmService {
     };
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: Uint8Array) {
     const film = await this.prismaService.film.findUniqueOrThrow({
       where: { id },
       select: {
@@ -280,7 +280,7 @@ export class FilmService {
     };
   }
 
-  async updateItem(id: Buffer, body: UpdateFilmDto, account: TAccountRequest) {
+  async updateItem(id: Uint8Array, body: UpdateFilmDto, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     const item = await this.prismaService.film.update({
@@ -323,7 +323,7 @@ export class FilmService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     await this.ownershipService.deleteItem(async () => {

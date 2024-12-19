@@ -17,7 +17,7 @@ import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.d
 export class RatingService {
   constructor(private prismaService: PrismaService) {}
 
-  getDestObject(type: RatingType, dest_id: Buffer) {
+  getDestObject(type: RatingType, dest_id: Uint8Array) {
     if (type === RatingType.CINEMA_PROVIDER) {
       return {
         dest_cinema_provider_id: dest_id,
@@ -98,7 +98,7 @@ export class RatingService {
     };
   }
 
-  async updateItem(id: Buffer, body: UpdateRating, account: TAccountRequest) {
+  async updateItem(id: Uint8Array, body: UpdateRating, account: TAccountRequest) {
     await this.prismaService.rating.updateMany({
       where: { id, account_id: account.id },
       data: {
@@ -112,7 +112,7 @@ export class RatingService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.prismaService.rating.delete({
       where: { id, account_id: account.id },
     });

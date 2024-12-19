@@ -21,7 +21,7 @@ export class PerformService {
     private ownershipService: OwnershipService,
   ) {}
 
-  private async getProviderIdByFilmId(filmId: Buffer) {
+  private async getProviderIdByFilmId(filmId: Uint8Array) {
     const film = await this.prismaService.film.findUniqueOrThrow({
       where: {
         id: filmId,
@@ -163,7 +163,7 @@ export class PerformService {
     };
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: Uint8Array) {
     const item = await this.prismaService.perform.findUniqueOrThrow({
       where: {
         id,
@@ -237,7 +237,7 @@ export class PerformService {
   }
 
   async updateItem(
-    id: Buffer,
+    id: Uint8Array,
     body: UpdatePerformDto,
     account: TAccountRequest,
   ) {
@@ -266,7 +266,7 @@ export class PerformService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     await this.ownershipService.deleteItem(async () => {

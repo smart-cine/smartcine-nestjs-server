@@ -95,7 +95,7 @@ export class ItemService {
     };
   }
 
-  async updateItem(id: Buffer, body: UpdateItemDto, account: TAccountRequest) {
+  async updateItem(id: Uint8Array, body: UpdateItemDto, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     const item = await this.prismaService.item.update({
@@ -115,7 +115,7 @@ export class ItemService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     await this.ownershipService.deleteItem(async () => {

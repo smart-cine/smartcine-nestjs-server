@@ -23,7 +23,7 @@ export class CinemaService {
     private cinemaProviderService: CinemaProviderService,
   ) {}
 
-  private async getProviderId(account_id: Buffer) {
+  private async getProviderId(account_id: Uint8Array) {
     //! Must have feature-flag guard in the controller to check if the user has the right role
     const { item_id } = await this.prismaService.ownership.findUniqueOrThrow({
       where: {
@@ -61,7 +61,7 @@ export class CinemaService {
     };
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: Uint8Array) {
     const item = await this.prismaService.cinema.findUniqueOrThrow({
       where: { id },
     });
@@ -103,7 +103,7 @@ export class CinemaService {
   }
 
   async updateItem(
-    id: Buffer,
+    id: Uint8Array,
     body: UpdateCinemaDto,
     account: TAccountRequest,
   ) {
@@ -133,7 +133,7 @@ export class CinemaService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
     await this.ownershipService.deleteItem(async () => {
       await this.prismaService.cinema.deleteMany({

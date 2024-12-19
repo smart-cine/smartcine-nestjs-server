@@ -48,7 +48,7 @@ export class CinemaLayoutGroupService {
   }
 
   async updateItem(
-    id: Buffer,
+    id: Uint8Array,
     body: UpdateCinemaLayoutGroupDto,
     account: TAccountRequest,
   ) {
@@ -79,7 +79,7 @@ export class CinemaLayoutGroupService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
     await this.ownershipService.deleteItem(async () => {
       await this.prismaService.cinemaLayoutGroup.deleteMany({ where: { id } });

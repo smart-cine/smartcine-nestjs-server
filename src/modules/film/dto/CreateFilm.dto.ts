@@ -12,7 +12,7 @@ export class CreateFilmDto {
   @StringToBuffer()
   @IsNotEmpty()
   @IsString()
-  cinema_provider_id: Buffer;
+  cinema_provider_id: Uint8Array;
 
   @IsNotEmpty()
   @IsString()

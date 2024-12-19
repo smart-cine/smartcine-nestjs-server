@@ -6,7 +6,7 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class CreateRatingDto {
   @StringToBuffer()
   @IsNotEmpty()
-  dest_id: Buffer;
+  dest_id: Uint8Array;
 
   @IsEnum(RatingType)
   type: RatingType;

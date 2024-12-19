@@ -166,7 +166,7 @@ export class AccountService {
     ]);
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: Uint8Array) {
     const item = await this.prismaService.account.findUniqueOrThrow({
       where: { id },
       select: {

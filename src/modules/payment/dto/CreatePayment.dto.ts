@@ -12,7 +12,7 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class CreatePaymentDto {
   @StringToBuffer()
   @IsNotEmpty()
-  perform_id: Buffer;
+  perform_id: Uint8Array;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -28,7 +28,7 @@ export class CreatePaymentDto {
 class ItemPayment {
   @StringToBuffer()
   @IsNotEmpty()
-  id: Buffer;
+  id: Uint8Array;
 
   @IsInt()
   @IsNotEmpty()

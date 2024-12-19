@@ -16,7 +16,7 @@ import { UpdateCommentDto } from './dto/UpdateComment.dto';
 export class CommentService {
   constructor(private prismaService: PrismaService) {}
 
-  getDestObject(type: CommentType, dest_id: Buffer) {
+  getDestObject(type: CommentType, dest_id: Uint8Array) {
     if (type === CommentType.CINEMA_PROVIDER) {
       return {
         dest_cinema_provider_id: dest_id,
@@ -92,7 +92,7 @@ export class CommentService {
     };
   }
 
-  async getItem(id: Buffer) {
+  async getItem(id: Uint8Array) {
     const item = await this.prismaService.comment.findUniqueOrThrow({
       where: { id },
       select: {
@@ -142,7 +142,7 @@ export class CommentService {
     };
   }
 
-  async createItem(account_id: Buffer, body: CreateCommentDto) {
+  async createItem(account_id: Uint8Array, body: CreateCommentDto) {
     const item = await this.prismaService.comment.create({
       data: {
         id: genId(),
@@ -163,7 +163,7 @@ export class CommentService {
     };
   }
 
-  async updateItem(id: Buffer, body: UpdateCommentDto) {
+  async updateItem(id: Uint8Array, body: UpdateCommentDto) {
     const item = await this.prismaService.comment.update({
       where: { id },
       data: {
@@ -181,7 +181,7 @@ export class CommentService {
     };
   }
 
-  async deleteItem(id: Buffer) {
+  async deleteItem(id: Uint8Array) {
     await this.prismaService.comment.delete({
       where: { id },
     });

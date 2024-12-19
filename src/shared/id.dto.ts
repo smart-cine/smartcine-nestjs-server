@@ -4,5 +4,5 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class IdDto {
   @StringToBuffer()
   @IsNotEmpty()
-  id: Buffer;
+  id: Uint8Array;
 }

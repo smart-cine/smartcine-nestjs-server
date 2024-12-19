@@ -6,8 +6,8 @@ export enum OwnershipType {
 }
 
 export type TOwnerships = {
-  cinema_provider_id?: Buffer;
-  cinema_id?: Buffer;
+  cinema_provider_id?: Uint8Array;
+  cinema_id?: Uint8Array;
 };
 
 export const PERMISSION_NAMESPACES = [

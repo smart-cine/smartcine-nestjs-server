@@ -6,11 +6,11 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class QueryPerformListCinemaDto extends PaginationQueryDto {
   @StringToBuffer()
   @IsNotEmpty()
-  film_id: Buffer;
+  film_id: Uint8Array;
 
   @StringToBuffer()
   @IsOptional()
-  cinema_provider_id?: Buffer;
+  cinema_provider_id?: Uint8Array;
 
   @IsString()
   @IsNotEmpty()

@@ -6,11 +6,11 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class CreatePerformDto {
   @StringToBuffer()
   @IsNotEmpty()
-  film_id: Buffer;
+  film_id: Uint8Array;
 
   @StringToBuffer()
   @IsNotEmpty()
-  cinema_room_id: Buffer;
+  cinema_room_id: Uint8Array;
 
   @Transform(({ value }) => new Date(value))
   @IsDate()

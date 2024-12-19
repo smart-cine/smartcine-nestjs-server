@@ -2,6 +2,7 @@ import { binaryToUuid } from 'src/utils/uuid';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { BusinessRole } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { isEqualBytes } from 'src/utils/common'
 
 @Injectable()
 export class OwnershipService {
@@ -44,7 +45,7 @@ export class OwnershipService {
     return false;
   }
 
-  async accountHasAccess(item_id: Buffer, account_id: Buffer) {
+  async accountHasAccess(item_id: Uint8Array, account_id: Uint8Array) {
     const ownership = await this.prismaService.ownership.findUniqueOrThrow({
       where: {
         owner_id: account_id,
@@ -55,7 +56,7 @@ export class OwnershipService {
     });
 
     // check if the item_id is the same as the ownership.item_id
-    if (item_id.equals(ownership.item_id)) {
+    if (isEqualBytes(item_id, ownership.item_id)) {
       return true;
     }
 
@@ -86,7 +87,7 @@ export class OwnershipService {
       checkLoop.add(id_str);
 
       // check if the current parent_id is the root
-      if (query.parent_id.equals(ownership.item_id)) {
+      if (isEqualBytes(query.parent_id, ownership.item_id)) {
         return true;
       }
 
@@ -96,7 +97,7 @@ export class OwnershipService {
     return false;
   }
 
-  async checkAccountHasAccess(item_id: Buffer, account_id: Buffer) {
+  async checkAccountHasAccess(item_id: Uint8Array, account_id: Uint8Array) {
     const hasAccess = await this.accountHasAccess(item_id, account_id);
     if (!hasAccess) {
       throw new UnauthorizedException('Permission denied');
@@ -104,9 +105,9 @@ export class OwnershipService {
   }
 
   // Check if item_id is descendant of parent_id
-  async isDescendantOf(item_id: Buffer, parent_id: Buffer) {
+  async isDescendantOf(item_id: Uint8Array, parent_id: Uint8Array) {
     // check if the item_id is the same as the ownership.item_id
-    if (item_id.equals(parent_id)) {
+    if (isEqualBytes(item_id, parent_id)) {
       return true;
     }
 
@@ -137,7 +138,7 @@ export class OwnershipService {
       checkLoop.add(id_str);
 
       // check if the current parent_id is the root
-      if (query.parent_id.equals(parent_id)) {
+      if (isEqualBytes(query.parent_id, parent_id)) {
         return true;
       }
 
@@ -147,7 +148,7 @@ export class OwnershipService {
     return false;
   }
 
-  async checkIsDescendantOf(item_id: Buffer, parent_id: Buffer) {
+  async checkIsDescendantOf(item_id: Uint8Array, parent_id: Uint8Array) {
     const isDescendant = await this.isDescendantOf(item_id, parent_id);
     if (!isDescendant) {
       throw new UnauthorizedException('Permission denied');
@@ -161,7 +162,7 @@ export class OwnershipService {
     });
   }
 
-  async deleteItem(func: () => Promise<Buffer | Buffer[]>) {
+  async deleteItem(func: () => Promise<Uint8Array | Uint8Array[]>) {
     const result = await func();
     await this.prismaService.ownershipTree.deleteMany({
       where: {
@@ -174,6 +175,6 @@ export class OwnershipService {
 }
 
 type TOwnershipNode = {
-  item_id: Buffer;
-  parent_id: Buffer;
+  item_id: Uint8Array;
+  parent_id: Uint8Array;
 };

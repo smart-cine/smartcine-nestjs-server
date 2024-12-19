@@ -89,7 +89,7 @@ export class CinemaLayoutSeatService {
   }
 
   async updateItem(
-    id: Buffer,
+    id: Uint8Array,
     body: UpdateCinemaLayoutSeat,
     account: TAccountRequest,
   ) {
@@ -112,7 +112,7 @@ export class CinemaLayoutSeatService {
     };
   }
 
-  async deleteItem(id: Buffer, account: TAccountRequest) {
+  async deleteItem(id: Uint8Array, account: TAccountRequest) {
     await this.ownershipService.checkAccountHasAccess(id, account.id);
 
     await this.ownershipService.deleteItem(async () => {

@@ -5,7 +5,7 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class CreateCinemaLayoutGroupDto {
   @StringToBuffer()
   @IsNotEmpty()
-  layout_id: Buffer;
+  layout_id: Uint8Array;
 
   @IsNotEmpty()
   name: string;

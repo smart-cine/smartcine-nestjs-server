@@ -1,15 +1,15 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["tracing"]
+  // previewFeatures = ["tracing"]
 }
 
 generator dbml {
   provider = "prisma-dbml-generator"
 }
 
-generator erd {
-  provider = "prisma-erd-generator"
-}
+// generator erd {
+//   provider = "prisma-erd-generator"
+// }
 
 datasource db {
   provider     = "mysql"

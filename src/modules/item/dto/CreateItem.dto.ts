@@ -15,11 +15,11 @@ import { StringToBuffer } from 'src/utils/StringToBuffer';
 export class CreateItemDto {
   @StringToBuffer()
   @IsOptional()
-  parent_id?: Buffer;
+  parent_id?: Uint8Array;
 
   @StringToBuffer()
   @IsNotEmpty()
-  cinema_id: Buffer;
+  cinema_id: Uint8Array;
 
   @IsNotEmpty()
   name: string;
