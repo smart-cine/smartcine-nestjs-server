@@ -28,7 +28,7 @@ export class CinemaLayoutGroupService {
           id: id,
           cinema_layout_id: body.layout_id,
           name: body.name,
-          color: body.color,
+          color_code: body.color_code,
           price: body.price,
         },
       });
@@ -42,7 +42,7 @@ export class CinemaLayoutGroupService {
       id: binaryToUuid(id),
       cinema_layout_id: binaryToUuid(body.layout_id),
       name: body.name,
-      color: body.color,
+      color_code: body.color_code,
       price: body.price,
     };
   }
@@ -58,14 +58,14 @@ export class CinemaLayoutGroupService {
       where: { id },
       data: {
         name: body.name,
-        color: body.color,
+        color_code: body.color_code,
         price: body.price,
       },
       select: {
         id: true,
         cinema_layout_id: true,
         name: true,
-        color: true,
+        color_code: true,
         price: true,
       },
     });
@@ -74,7 +74,7 @@ export class CinemaLayoutGroupService {
       id: binaryToUuid(item.id),
       cinema_layout_id: binaryToUuid(item.cinema_layout_id),
       name: item.name,
-      color: item.color,
+      color_code: item.color_code,
       price: item.price,
     };
   }

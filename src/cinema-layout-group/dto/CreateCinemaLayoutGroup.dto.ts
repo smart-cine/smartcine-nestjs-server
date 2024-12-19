@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsDecimal, IsInt, IsNotEmpty, Max, Min } from 'class-validator';
+import { IsDecimal, IsInt, IsNotEmpty, IsString, Max, Min } from 'class-validator';
 import { StringToBuffer } from 'src/utils/StringToBuffer';
 
 export class CreateCinemaLayoutGroupDto {
@@ -10,12 +10,11 @@ export class CreateCinemaLayoutGroupDto {
   @IsNotEmpty()
   name: string;
 
-  @Min(0)
-  @Max(255)
-  @IsInt()
-  @Type(() => Number)
+  @IsString()
   @IsNotEmpty()
-  color: number;
+  @Min(0)
+  @Max(7)
+  color_code: string;
 
   @IsDecimal()
   @Transform(({ value }) => parseFloat(value))
