@@ -12,7 +12,7 @@ COPY package.json bun.lockb* ./
 RUN curl -fsSL https://bun.sh/install | bash
 RUN export BUN_INSTALL="$HOME/.bun" 
 RUN export PATH="$BUN_INSTALL/bin:$PATH" 
-RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile --production; \
+RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -39,4 +39,4 @@ EXPOSE 9995
 
 ENV PORT 9995
 
-CMD ["node", "dist/main"]
+CMD ["bun", "run", "start:prod"]
