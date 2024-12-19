@@ -12,7 +12,7 @@ COPY package.json bun.lockb* ./
 RUN curl -fsSL https://bun.sh/install | bash
 RUN export BUN_INSTALL="$HOME/.bun" 
 RUN export PATH="$BUN_INSTALL/bin:$PATH" 
-RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile; \
+RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile && bun run prisma:generate; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -27,12 +27,16 @@ RUN if [ -f bun.lockb ]; then bun run build; \
   else echo "Build error" && exit 1; \
   fi
 
+
+
+
 # Production image, copy all the files and run nestjs server
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 9995
