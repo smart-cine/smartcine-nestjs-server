@@ -12,9 +12,16 @@ COPY package.json bun.lockb* ./
 RUN curl -fsSL https://bun.sh/install | bash
 RUN export BUN_INSTALL="$HOME/.bun" 
 RUN export PATH="$BUN_INSTALL/bin:$PATH" 
-RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile && bun run prisma:generate; \
+RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
+
+
+# Generate prisma client library
+FROM base AS prisma
+WORKDIR /app
+COPY ./prisma/prisma.schema ./prisma/schema.prisma
+RUN bun run prisma:generate
 
 
 # Rebuild the source code only when needed
