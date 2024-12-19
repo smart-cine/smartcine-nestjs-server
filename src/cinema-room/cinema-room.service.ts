@@ -77,7 +77,7 @@ export class CinemaRoomService {
             groups: item.layout.layout_groups.map((group) => ({
               id: binaryToUuid(group.id),
               name: group.name,
-              color: group.color,
+              color_code: group.color_code,
               price: group.price,
             })),
           }
