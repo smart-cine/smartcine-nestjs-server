@@ -46,8 +46,11 @@ export class PerformService {
               },
             },
           },
-        }
-      }
+          layout: {
+            isNot: null,
+          },
+        },
+      },
     };
 
     const [items, pagination] = genPaginationResponse({
@@ -72,8 +75,8 @@ export class PerformService {
               },
             },
             where: conditions.rooms?.some,
-          }
-        }
+          },
+        },
       }),
       total: await this.prismaService.cinema.count({ where: conditions }),
       query,
@@ -105,6 +108,9 @@ export class PerformService {
         some: {
           room: {
             cinema_id: query.cinema_id,
+            layout: {
+              isNot: null,
+            }
           },
           start_time: {
             gte: query.start_time,
@@ -130,7 +136,7 @@ export class PerformService {
             },
             where: conditions.performs?.some,
           },
-        }
+        },
       }),
       total: await this.prismaService.film.count({ where: conditions }),
       query,
@@ -172,9 +178,9 @@ export class PerformService {
         room: {
           select: {
             cinema_id: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
     return {
       id: binaryToUuid(item.id),
