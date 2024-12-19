@@ -303,7 +303,7 @@ async function init(prisma: PrismaClient) {
         id: genId(),
         cinema_layout_id: layout_id,
         name: grouptypes.pop()!,
-        color: faker.helpers.rangeToNumber({ min: 0, max: 255 }),
+        color_code: faker.internet.color(),
         price: faker.finance.amount({
           min: 10000,
           max: 100000,
