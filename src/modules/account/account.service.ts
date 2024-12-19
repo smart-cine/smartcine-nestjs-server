@@ -3,7 +3,7 @@ import { PrismaService } from '@/common/prisma/prisma.service';
 import { LoginAccount } from './dto/LoginAccount.dto';
 import { RegisterAccount } from './dto/RegisterAccount.dto';
 import { genId } from '@/shared/genId';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { binaryToUuid } from '@/utils/uuid';
 import { RedisService } from '@/common/redis/redis.service';
 import { JwtService } from '@nestjs/jwt';
