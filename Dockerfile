@@ -42,4 +42,4 @@ EXPOSE 9995
 
 ENV PORT 9995
 
-CMD ["node", "dist/main"]
+CMD ["node", "/app/dist/src/main"]
