@@ -9,13 +9,13 @@ import {
 } from '@nestjs/common';
 import { PickseatService } from './pickseat.service';
 import { CreatePickseatDto } from './dto/CreatePickseat.dto';
-import { IdDto } from 'src/shared/id.dto';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+import { IdDto } from '@/shared/id.dto';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import { AccountRole } from '@prisma/client';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
 import { QueryPickseatDto } from './dto/QueryPickseat.dto';
 
 @Controller('pickseat')

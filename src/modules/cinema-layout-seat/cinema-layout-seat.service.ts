@@ -1,14 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreateCinemaLayoutSeatDto } from './dto/CreateCinemaLayoutSeat.dto';
-import { genId } from 'src/shared/genId';
-import { binaryToUuid } from 'src/utils/uuid';
-import { IdDto } from 'src/shared/id.dto';
+import { genId } from '@/shared/genId';
+import { binaryToUuid } from '@/utils/uuid';
+import { IdDto } from '@/shared/id.dto';
 import { UpdateCinemaLayoutSeat } from './dto/UpdateCinemaLayoutSeat.dto';
-import { ClientError } from 'src/common/response/error/ClientError';
-import { ErrorKey } from 'src/common/response/constants/error-key';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
+import { ClientError } from '@/common/response/error/ClientError';
+import { ErrorKey } from '@/common/response/constants/error-key';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
+import { OwnershipService } from '@/common/ownership/ownership.service';
 
 @Injectable()
 export class CinemaLayoutSeatService {

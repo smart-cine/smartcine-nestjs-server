@@ -3,13 +3,13 @@ import { TagService } from './tag.service';
 import { QueryTagDto } from './dto/QueryTag.dto';
 import { CreateTagDto } from './dto/CreateTag.dto';
 import { DeleteTagDto } from './dto/DeleteTag.dto';
-import { Feature } from 'src/modules/account/decorators/feature.decorator';
+import { Feature } from '@/modules/account/decorators/feature.decorator';
 import { AccountRole, FeatureFlag } from '@prisma/client';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 
 @Controller('tag')
 export class TagController {

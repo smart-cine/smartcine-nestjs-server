@@ -1,7 +1,7 @@
 import { PickType, PartialType } from '@nestjs/mapped-types';
 import { IsNotEmpty, IsOptional } from 'class-validator';
-import { CreateCinemaLayoutDto } from 'src/modules/cinema-layout/dto/CreateCinemaLayout.dto';
-import { StringToBuffer } from 'src/utils/StringToBuffer';
+import { CreateCinemaLayoutDto } from '@/modules/cinema-layout/dto/CreateCinemaLayout.dto';
+import { StringToBuffer } from '@/utils/StringToBuffer';
 
 export class CreateCinemaRoomDto extends PartialType(
   PickType(CreateCinemaLayoutDto, ['rows', 'columns']),

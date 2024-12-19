@@ -10,14 +10,14 @@ import {
 } from '@nestjs/common';
 import { RatingService } from './rating.service';
 import { QueryRatingDto } from './dto/QueryRating.dto';
-import { IdDto } from 'src/shared/id.dto';
+import { IdDto } from '@/shared/id.dto';
 import { CreateRatingDto } from './dto/CreateRating.dto';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
 import { UpdateRating } from './dto/UpdateRating.dto';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import { AccountRole } from '@prisma/client';
 
 @Controller('rating')

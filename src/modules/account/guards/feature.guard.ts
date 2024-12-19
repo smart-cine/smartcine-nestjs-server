@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Feature } from '../decorators/feature.decorator';
 import { TCustomRequest } from '../types/TCustomRequest';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 
 @Injectable()
 export class FeatureGuard implements CanActivate {

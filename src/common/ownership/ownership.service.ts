@@ -1,8 +1,8 @@
-import { binaryToUuid } from 'src/utils/uuid';
+import { binaryToUuid } from '@/utils/uuid';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { BusinessRole } from '@prisma/client';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { isEqualBytes } from 'src/utils/common'
+import { PrismaService } from '@/common/prisma/prisma.service';
+import { isEqualBytes } from '@/utils/common'
 
 @Injectable()
 export class OwnershipService {

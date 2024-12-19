@@ -1,18 +1,18 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/CreatePayment.dto';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import * as moment from 'moment';
 import { PaymentStatus, Prisma } from '@prisma/client';
-import { genId } from 'src/shared/genId';
-import { binaryToUuid, uuidToBinary } from 'src/utils/uuid';
+import { genId } from '@/shared/genId';
+import { binaryToUuid, uuidToBinary } from '@/utils/uuid';
 import { VNPAYDto } from './dto/VNPAY.dto';
 import { validate, validateOrReject } from 'class-validator';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { VNPAYWalletService } from './wallet/vnpay-wallet.service';
-import { RedisService } from 'src/common/redis/redis.service'
-import { PickseatStatus } from 'src/modules/pickseat/constants/pickseat.constant'
+import { RedisService } from '@/common/redis/redis.service'
+import { PickseatStatus } from '@/modules/pickseat/constants/pickseat.constant'
 
 
 

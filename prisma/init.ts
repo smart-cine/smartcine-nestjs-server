@@ -15,8 +15,8 @@ import {
 } from '@prisma/client';
 import { randomBytes, randomInt } from 'crypto';
 import { fa, faker, ro } from '@faker-js/faker';
-// import { hash } from 'src/utils/hash';
-import { genId } from 'src/shared/genId';
+// import { hash } from '@/utils/hash';
+import { genId } from '@/shared/genId';
 import { ModelName } from '@casl/prisma/dist/types/prismaClientBoundTypes';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import moment from 'moment';

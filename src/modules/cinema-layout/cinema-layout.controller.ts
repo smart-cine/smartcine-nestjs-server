@@ -10,17 +10,17 @@ import {
 } from '@nestjs/common';
 import { CinemaLayoutService } from './cinema-layout.service';
 import { QueryCinemaLayoutDto } from './dto/QueryCinemaLayout.dto';
-import { IdDto } from 'src/shared/id.dto';
+import { IdDto } from '@/shared/id.dto';
 import { CreateCinemaLayoutDto } from './dto/CreateCinemaLayout.dto';
 import { UpdateCinemaLayoutDto } from './dto/UpdateCinemaLayout.dto';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import { AccountRole, FeatureFlag } from '@prisma/client';
 import { CloneCinemaLayoutDto } from './dto/CloneCinemaLayout.dto';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
-import { Feature } from 'src/modules/account/decorators/feature.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
+import { Feature } from '@/modules/account/decorators/feature.decorator';
 
 @Controller('cinema-layout')
 @Roles([AccountRole.BUSINESS])

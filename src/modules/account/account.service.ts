@@ -1,16 +1,16 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { LoginAccount } from './dto/LoginAccount.dto';
 import { RegisterAccount } from './dto/RegisterAccount.dto';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import * as bcrypt from 'bcrypt';
-import { binaryToUuid } from 'src/utils/uuid';
-import { RedisService } from 'src/common/redis/redis.service';
+import { binaryToUuid } from '@/utils/uuid';
+import { RedisService } from '@/common/redis/redis.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { convertJwtExpireToSeconds } from 'src/utils/common';
-import { ClientError } from 'src/common/response/error/ClientError';
-import { ErrorKey } from 'src/common/response/constants/error-key';
+import { convertJwtExpireToSeconds } from '@/utils/common';
+import { ClientError } from '@/common/response/error/ClientError';
+import { ErrorKey } from '@/common/response/constants/error-key';
 import { TAccountRequest } from './decorators/AccountRequest.decorator';
 import { BusinessRole } from '@prisma/client';
 

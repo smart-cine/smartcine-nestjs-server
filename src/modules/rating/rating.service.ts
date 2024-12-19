@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { QueryRatingDto } from './dto/QueryRating.dto';
 import { RatingType } from '@prisma/client';
 import {
   genPaginationParams,
   genPaginationResponse,
-} from 'src/common/pagination/pagination.util';
-import { IdDto } from 'src/shared/id.dto';
-import { binaryToUuid } from 'src/utils/uuid';
+} from '@/common/pagination/pagination.util';
+import { IdDto } from '@/shared/id.dto';
+import { binaryToUuid } from '@/utils/uuid';
 import { CreateRatingDto } from './dto/CreateRating.dto';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import { UpdateRating } from './dto/UpdateRating.dto';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
 
 @Injectable()
 export class RatingService {

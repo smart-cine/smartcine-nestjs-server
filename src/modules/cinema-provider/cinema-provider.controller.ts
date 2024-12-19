@@ -9,17 +9,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { CinemaProviderService } from './cinema-provider.service';
-import { IdDto } from 'src/shared/id.dto';
+import { IdDto } from '@/shared/id.dto';
 import { CreateCinemaProviderDto } from './dto/CreateCinemaProvider.dto';
 import { UpdateCinemaProviderDto } from './dto/UpdateCinemaProvider.dto';
 import { QueryCinemaProviderDto } from './dto/QueryCinemaProvider.dto';
 import { AccountRole, FeatureFlag } from '@prisma/client';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
-import { Feature } from 'src/modules/account/decorators/feature.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
+import { Feature } from '@/modules/account/decorators/feature.decorator';
 
 @Controller('cinema-provider')
 export class CinemaProviderController {

@@ -1,4 +1,4 @@
-import { StringToBuffer } from 'src/utils/StringToBuffer';
+import { StringToBuffer } from '@/utils/StringToBuffer';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class QueryPickseatDto {

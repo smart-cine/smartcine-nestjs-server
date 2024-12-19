@@ -2,14 +2,14 @@ import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
 import { CinemaLayoutSeatService } from './cinema-layout-seat.service';
 import { CreateCinemaLayoutSeatDto } from './dto/CreateCinemaLayoutSeat.dto';
 import { UpdateCinemaLayoutSeat } from './dto/UpdateCinemaLayoutSeat.dto';
-import { IdDto } from 'src/shared/id.dto';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+import { IdDto } from '@/shared/id.dto';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import { AccountRole, FeatureFlag } from '@prisma/client';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
-import { Feature } from 'src/modules/account/decorators/feature.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
+import { Feature } from '@/modules/account/decorators/feature.decorator';
 
 @Roles([AccountRole.BUSINESS])
 @Controller('cinema-layout-seat')

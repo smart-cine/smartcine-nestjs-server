@@ -7,7 +7,7 @@ import {
   IsDate,
   IsOptional,
 } from 'class-validator';
-import { StringToBuffer } from 'src/utils/StringToBuffer';
+import { StringToBuffer } from '@/utils/StringToBuffer';
 import { CreateFilmDto } from './CreateFilm.dto';
 
 export class UpdateFilmDto extends PartialType(

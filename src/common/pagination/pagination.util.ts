@@ -1,4 +1,4 @@
-import { binaryToUuid } from 'src/utils/uuid';
+import { binaryToUuid } from '@/utils/uuid';
 import { PaginationQueryDto } from './PaginationQuery.dto';
 
 export function genPaginationResponse<T extends { id: Uint8Array }>({

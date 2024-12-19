@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { QueryTagDto } from './dto/QueryTag.dto';
 import { CreateTagDto } from './dto/CreateTag.dto';
 import { DeleteTagDto } from './dto/DeleteTag.dto';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
+import { OwnershipService } from '@/common/ownership/ownership.service';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
 
 @Injectable()
 export class TagService {

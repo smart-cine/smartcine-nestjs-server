@@ -1,19 +1,19 @@
 import { accessibleBy } from '@casl/prisma';
-import { binaryToUuid } from 'src/utils/uuid';
+import { binaryToUuid } from '@/utils/uuid';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { QueryCinemaDto } from './dto/QueryCinema.dto';
 import {
   genPaginationParams,
   genPaginationResponse,
-} from 'src/common/pagination/pagination.util';
+} from '@/common/pagination/pagination.util';
 import { CreateCinemaDto } from './dto/CreateCinema.dto';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import { UpdateCinemaDto } from './dto/UpdateCinema.dto';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
-import { CinemaProviderService } from 'src/modules/cinema-provider/cinema-provider.service';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
+import { CinemaProviderService } from '@/modules/cinema-provider/cinema-provider.service';
 import { BusinessRole, Prisma } from '@prisma/client';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
+import { OwnershipService } from '@/common/ownership/ownership.service';
 
 @Injectable()
 export class CinemaService {

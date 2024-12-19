@@ -8,13 +8,13 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { validateOrReject } from 'class-validator';
 import { Request } from 'express';
-import { RedisService } from 'src/common/redis/redis.service';
+import { RedisService } from '@/common/redis/redis.service';
 import { plainToInstance } from 'class-transformer';
 import { JwtPayloadDto } from '../dto/JwtPayload.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { AccountRole } from '@prisma/client';
 import { TCustomRequest } from '../types/TCustomRequest';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 
 @Injectable()
 export class JwtParserGuard implements CanActivate {

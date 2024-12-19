@@ -11,15 +11,15 @@ import {
 import { FilmService } from './film.service';
 import { CreateFilmDto } from './dto/CreateFilm.dto';
 import { UpdateFilmDto } from './dto/UpdateFilm.dto';
-import { IdDto } from 'src/shared/id.dto';
-import { PaginationQueryDto } from 'src/common/pagination/PaginationQuery.dto';
+import { IdDto } from '@/shared/id.dto';
+import { PaginationQueryDto } from '@/common/pagination/PaginationQuery.dto';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import { AccountRole, FeatureFlag } from '@prisma/client';
-import { Feature } from 'src/modules/account/decorators/feature.decorator';
+import { Feature } from '@/modules/account/decorators/feature.decorator';
 
 @Controller('film')
 export class FilmController {

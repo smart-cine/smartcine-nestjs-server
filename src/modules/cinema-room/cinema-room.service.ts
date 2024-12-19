@@ -1,18 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { QueryCinemaRoomDto } from './dto/QueryCinemaRoom.dto';
 import {
   genPaginationParams,
   genPaginationResponse,
-} from 'src/common/pagination/pagination.util';
-import { binaryToUuid } from 'src/utils/uuid';
-import { IdDto } from 'src/shared/id.dto';
+} from '@/common/pagination/pagination.util';
+import { binaryToUuid } from '@/utils/uuid';
+import { IdDto } from '@/shared/id.dto';
 import { CreateCinemaRoomDto } from './dto/CreateCinemaRoom.dto';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import { UpdateCinemaRoomDto } from './dto/UpdateCinemaRoom.dto';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
-import { CinemaLayoutService } from 'src/modules/cinema-layout/cinema-layout.service';
+import { OwnershipService } from '@/common/ownership/ownership.service';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
+import { CinemaLayoutService } from '@/modules/cinema-layout/cinema-layout.service';
 
 @Injectable()
 export class CinemaRoomService {

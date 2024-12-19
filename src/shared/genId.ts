@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { uuidToBinary } from 'src/utils/uuid';
+import { uuidToBinary } from '@/utils/uuid';
 import { v4 } from 'uuid';
 
 export function genId() {

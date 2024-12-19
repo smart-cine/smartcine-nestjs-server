@@ -9,8 +9,8 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { IsBuffer } from 'src/utils/IsBuffer';
-import { StringToBuffer } from 'src/utils/StringToBuffer';
+import { IsBuffer } from '@/utils/IsBuffer';
+import { StringToBuffer } from '@/utils/StringToBuffer';
 
 export class CreateItemDto {
   @StringToBuffer()

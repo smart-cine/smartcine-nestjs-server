@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { HashAlgorithm } from '../enum/HashAlgorithm.enum';
-import { hash, hexToUint8Array } from 'src/utils/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { hash, hexToUint8Array } from '@/utils/common';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import { TPaymentInfo, WalletInterface } from './wallet.interface';
 import { VNPAYDto } from '../dto/VNPAY.dto';
 import * as moment from 'moment';
-import { binaryToUuid, uuidToBinary } from 'src/utils/uuid';
+import { binaryToUuid, uuidToBinary } from '@/utils/uuid';
 import { VNPAYIPNDto } from '../dto/VNPAY-IPN.dto';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { PaymentStatus } from '@prisma/client';
-import { RedisService } from 'src/common/redis/redis.service';
+import { RedisService } from '@/common/redis/redis.service';
 
 @Injectable()
 export class VNPAYWalletService implements WalletInterface<VNPAYDto> {

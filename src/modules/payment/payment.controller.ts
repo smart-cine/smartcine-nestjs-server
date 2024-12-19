@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Ip, Post, Query } from '@nestjs/common';
 import { AccountRole } from '@prisma/client';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import { PaymentService } from './payment.service';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
 import { CreatePaymentDto } from './dto/CreatePayment.dto';
 import { RealIP } from 'nestjs-real-ip';
 import { VNPAYWalletService } from './wallet/vnpay-wallet.service';

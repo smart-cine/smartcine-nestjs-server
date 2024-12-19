@@ -1,17 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreatePerformDto } from './dto/CreatePerform.dto';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import { QueryPerformListCinemaDto } from './dto/QueryPerformListCinema.dto';
 import { QueryPerformListFilmDto } from './dto/QueryPerformListFilm.dto';
 import {
   genPaginationParams,
   genPaginationResponse,
-} from 'src/common/pagination/pagination.util';
-import { binaryToUuid } from 'src/utils/uuid';
+} from '@/common/pagination/pagination.util';
+import { binaryToUuid } from '@/utils/uuid';
 import { UpdatePerformDto } from './dto/UpdatePerform.dto';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
+import { OwnershipService } from '@/common/ownership/ownership.service';
 import { Prisma } from '@prisma/client';
 
 @Injectable()

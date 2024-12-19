@@ -2,17 +2,17 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import {
   genPaginationParams,
   genPaginationResponse,
-} from 'src/common/pagination/pagination.util';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+} from '@/common/pagination/pagination.util';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { QueryCinemaLayoutDto } from './dto/QueryCinemaLayout.dto';
-import { binaryToUuid, uuidToBinary } from 'src/utils/uuid';
+import { binaryToUuid, uuidToBinary } from '@/utils/uuid';
 import { CreateCinemaLayoutDto } from './dto/CreateCinemaLayout.dto';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import { UpdateCinemaLayoutDto } from './dto/UpdateCinemaLayout.dto';
 import { CloneCinemaLayoutDto } from './dto/CloneCinemaLayout.dto';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
 import { Prisma } from '@prisma/client';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
+import { OwnershipService } from '@/common/ownership/ownership.service';
 
 @Injectable()
 export class CinemaLayoutService {

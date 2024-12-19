@@ -3,7 +3,7 @@ import { AccountService } from './account.service';
 import { RegisterAccount } from './dto/RegisterAccount.dto';
 import { LoginAccount } from './dto/LoginAccount.dto';
 import { Token } from './decorators/Token.decorator';
-import { IdDto } from 'src/shared/id.dto'
+import { IdDto } from '@/shared/id.dto'
 
 @Controller('account')
 export class AccountController {

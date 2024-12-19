@@ -1,12 +1,12 @@
-import { binaryToUuid } from 'src/utils/uuid';
+import { binaryToUuid } from '@/utils/uuid';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreatePickseatDto } from './dto/CreatePickseat.dto';
-import { RedisService } from 'src/common/redis/redis.service';
+import { RedisService } from '@/common/redis/redis.service';
 import { QueryPickseatDto } from './dto/QueryPickseat.dto';
 import { PickseatStatus } from './constants/pickseat.constant';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
+import { OwnershipService } from '@/common/ownership/ownership.service';
 
 @Injectable()
 export class PickseatService {

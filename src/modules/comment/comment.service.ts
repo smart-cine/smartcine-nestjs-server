@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { CreateCommentDto } from './dto/CreateComment.dto';
-import { binaryToUuid } from 'src/utils/uuid';
+import { binaryToUuid } from '@/utils/uuid';
 import { CommentType } from '@prisma/client';
 import { QueryCommentDto } from './dto/QueryComment.dto';
-import { IdDto } from 'src/shared/id.dto';
+import { IdDto } from '@/shared/id.dto';
 import {
   genPaginationParams,
   genPaginationResponse,
-} from 'src/common/pagination/pagination.util';
-import { genId } from 'src/shared/genId';
+} from '@/common/pagination/pagination.util';
+import { genId } from '@/shared/genId';
 import { UpdateCommentDto } from './dto/UpdateComment.dto';
 
 @Injectable()

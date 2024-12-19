@@ -10,16 +10,16 @@ import {
 } from '@nestjs/common';
 import { CinemaService } from './cinema.service';
 import { QueryCinemaDto } from './dto/QueryCinema.dto';
-import { IdDto } from 'src/shared/id.dto';
+import { IdDto } from '@/shared/id.dto';
 import { CreateCinemaDto } from './dto/CreateCinema.dto';
 import { UpdateCinemaDto } from './dto/UpdateCinema.dto';
-import { Roles } from 'src/modules/account/decorators/roles.decorator';
+import { Roles } from '@/modules/account/decorators/roles.decorator';
 import { AccountRole, FeatureFlag } from '@prisma/client';
 import {
   AccountRequest,
   TAccountRequest,
-} from 'src/modules/account/decorators/AccountRequest.decorator';
-import { Feature } from 'src/modules/account/decorators/feature.decorator';
+} from '@/modules/account/decorators/AccountRequest.decorator';
+import { Feature } from '@/modules/account/decorators/feature.decorator';
 
 @Controller('cinema')
 @Roles([AccountRole.USER, AccountRole.BUSINESS])

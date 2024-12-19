@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { binaryToUuid } from 'src/utils/uuid';
+import { PrismaService } from '@/common/prisma/prisma.service';
+import { binaryToUuid } from '@/utils/uuid';
 import { CreateCinemaProviderDto } from './dto/CreateCinemaProvider.dto';
-import { genId } from 'src/shared/genId';
+import { genId } from '@/shared/genId';
 import { UpdateCinemaProviderDto } from './dto/UpdateCinemaProvider.dto';
 import { QueryCinemaProviderDto } from './dto/QueryCinemaProvider.dto';
 import {
   genPaginationParams,
   genPaginationResponse,
-} from 'src/common/pagination/pagination.util';
-import { TAccountRequest } from 'src/modules/account/decorators/AccountRequest.decorator';
-import { OwnershipService } from 'src/common/ownership/ownership.service';
+} from '@/common/pagination/pagination.util';
+import { TAccountRequest } from '@/modules/account/decorators/AccountRequest.decorator';
+import { OwnershipService } from '@/common/ownership/ownership.service';
 import { BusinessRole, Prisma } from '@prisma/client';
-import { isEqualBytes } from 'src/utils/common'
+import { isEqualBytes } from '@/utils/common'
 
 @Injectable()
 export class CinemaProviderService {

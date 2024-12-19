@@ -1,7 +1,7 @@
 import { PerformTranslateType, PerformViewType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsDate, IsDateString, IsDecimal, IsEnum, IsNotEmpty } from 'class-validator';
-import { StringToBuffer } from 'src/utils/StringToBuffer';
+import { StringToBuffer } from '@/utils/StringToBuffer';
 
 export class CreatePerformDto {
   @StringToBuffer()

@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
-import { StringToBuffer } from 'src/utils/StringToBuffer';
+import { StringToBuffer } from '@/utils/StringToBuffer';
 
 export class CreateCinemaLayoutDto {
   @StringToBuffer()
