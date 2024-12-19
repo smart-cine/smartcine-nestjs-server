@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json bun.lockb* ./
+COPY ./prisma/* ./prisma/
 RUN curl -fsSL https://bun.sh/install | bash
 RUN export BUN_INSTALL="$HOME/.bun" 
 RUN export PATH="$BUN_INSTALL/bin:$PATH" 
