@@ -52,6 +52,13 @@ export class CommentService {
         ...conditions,
         select: {
           id: true,
+          account: {
+            select: {
+              id: true,
+              name: true,
+              avatar_url: true,
+            },
+          },
           body: true,
           ratings: {
             select: {
@@ -67,6 +74,11 @@ export class CommentService {
     return {
       data: items.map((item) => ({
         id: binaryToUuid(item.id),
+        account: {
+          id: binaryToUuid(item.account.id),
+          name: item.account.name,
+          avatar_url: item.account.avatar_url,
+        },
         body: item.body,
         rating: {
           score:
@@ -74,6 +86,7 @@ export class CommentService {
             item.ratings.length,
           count: item.ratings.length,
         },
+        children: [],
       })),
       pagination,
     };
@@ -84,7 +97,13 @@ export class CommentService {
       where: { id },
       select: {
         id: true,
-        account_id: true,
+        account: {
+          select: {
+            id: true,
+            name: true,
+            avatar_url: true,
+          }
+        },
         body: true,
         ratings: {
           select: {
@@ -103,7 +122,11 @@ export class CommentService {
 
     return {
       id: binaryToUuid(item.id),
-      account_id: binaryToUuid(item.account_id),
+      account: {
+        id: binaryToUuid(item.account.id),
+        name: item.account.name,
+        avatar_url: item.account.avatar_url,
+      },
       body: item.body,
       rating: {
         score:
