@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePerformDto } from './dto/CreatePerform.dto';
 import { genId } from 'src/shared/genId';
 import { QueryPerformListCinemaDto } from './dto/QueryPerformListCinema.dto';
-import { QueryPerformListFilmDto } from './dto/QueryPerformListFilm.dto'
+import { QueryPerformListFilmDto } from './dto/QueryPerformListFilm.dto';
 import {
   genPaginationParams,
   genPaginationResponse,
@@ -85,17 +85,19 @@ export class PerformService {
     return {
       data: items.map((item) => ({
         cinema_id: binaryToUuid(item.id),
-        performs: item.rooms.flatMap((room) => room.performs).map((perform) => ({
-          id: binaryToUuid(perform.id),
-          film_id: binaryToUuid(perform.film_id),
-          cinema_id: binaryToUuid(query.cinema_provider_id),
-          cinema_room_id: binaryToUuid(perform.cinema_room_id),
-          start_time: perform.start_time,
-          end_time: perform.end_time,
-          translate_type: perform.translate_type,
-          view_type: perform.view_type,
-          price: perform.price,
-        })),
+        performs: item.rooms
+          .flatMap((room) => room.performs)
+          .map((perform) => ({
+            id: binaryToUuid(perform.id),
+            film_id: binaryToUuid(perform.film_id),
+            cinema_id: binaryToUuid(item.id),
+            cinema_room_id: binaryToUuid(perform.cinema_room_id),
+            start_time: perform.start_time,
+            end_time: perform.end_time,
+            translate_type: perform.translate_type,
+            view_type: perform.view_type,
+            price: perform.price,
+          })),
       })),
       pagination,
     };
