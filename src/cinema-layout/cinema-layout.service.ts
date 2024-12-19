@@ -53,7 +53,7 @@ export class CinemaLayoutService {
         id: getNewGroupId(group.id),
         cinema_layout_id: newLayoutId,
         name: group.name,
-        color: group.color,
+        color_code: group.color_code,
         price: group.price,
       }));
       await tx.cinemaLayout.createMany({
@@ -101,7 +101,7 @@ export class CinemaLayoutService {
           id: getNewGroupId(group.id),
           cinema_layout_id: newLayoutId,
           name: group.name,
-          color: group.color,
+          color_code: group.color_code,
           price: group.price,
         })),
       });
@@ -134,7 +134,7 @@ export class CinemaLayoutService {
       groups: item.layout_groups.map((group) => ({
         id: binaryToUuid(group.id),
         name: group.name,
-        color: group.color,
+        color_code: group.color_code,
         price: group.price,
       })),
       seats: item.layout_seats.map((seat) => ({
@@ -204,7 +204,7 @@ export class CinemaLayoutService {
       groups: item.layout_groups.map((group) => ({
         id: binaryToUuid(group.id),
         name: group.name,
-        color: group.color,
+        color_code: group.color_code,
         price: group.price,
       })),
       seats: item.layout_seats.map((seat) => ({
