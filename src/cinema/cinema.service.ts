@@ -53,7 +53,7 @@ export class CinemaService {
     return {
       data: items.map((item) => ({
         id: binaryToUuid(item.id),
-        provider_id: binaryToUuid(item.cinema_provider_id),
+        cinema_provider_id: binaryToUuid(item.cinema_provider_id),
         name: item.name,
         address: item.address,
       })),
@@ -68,7 +68,7 @@ export class CinemaService {
 
     return {
       id: binaryToUuid(item.id),
-      provider_id: binaryToUuid(item.cinema_provider_id),
+      cinema_provider_id: binaryToUuid(item.cinema_provider_id),
       name: item.name,
       address: item.address,
     };
@@ -127,7 +127,7 @@ export class CinemaService {
 
     return {
       id: binaryToUuid(item.id),
-      provider_id: binaryToUuid(item.cinema_provider_id),
+      cinema_provider_id: binaryToUuid(item.cinema_provider_id),
       name: item.name,
       address: item.address,
     };
