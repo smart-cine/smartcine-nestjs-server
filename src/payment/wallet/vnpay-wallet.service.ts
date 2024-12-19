@@ -32,23 +32,7 @@ export class VNPAYWalletService implements WalletInterface<VNPAYDto> {
     if (!vnp_Version || !vnp_CurrCode || !vnp_Url) {
       throw new Error('VNPAY_VERSION or VNPAY_CURRCODE not found');
     }
-
-    // params.append('vnp_version', vnp_Version);
-    // params.append('vnp_command', 'pay');
-    // params.append('vnp_tmn_code', vnp_TmnCode);
-    // params.append('vnp_app_user_id', ''); //
-    // params.append('vnp_bank_code', 'VISA');
-    // params.append('vnp_locale', 'en');
-    // params.append('vnp_card_type', '01');
-    // params.append('vnp_txn_ref', binaryToUuid(id));
-    // params.append('vnp_order_info', 'Thanh toan hoa don');
-    // params.append('vnp_txn_desc', 'Thanh toan hoa don');
-    // params.append('vnp_return_url', 'http://localhost:3000');
-    // params.append('vnp_cancel_url', 'http://localhost:3000');
-    // params.append('vnp_ip_addr', info.ip);
-    // params.append('vnp_create_date', moment.utc().format('yyyyMMddHHmmss'));
-    // params.append('vnp_secure_hash', vnp_SecureHash);
-
+    
     params.append('vnp_Amount', String(info.amount * 100));
     params.append('vnp_Command', 'pay');
     params.append('vnp_CreateDate', moment().format('YYYYMMDDHHmmss'));
@@ -174,25 +158,4 @@ export class VNPAYWalletService implements WalletInterface<VNPAYDto> {
       });
     });
   }
-
-  // async verifyPayment(query: VNPAYIPNDto): Promise<boolean> {
-  //   const queryStr = new URLSearchParams(
-  //     query as unknown as Record<string, string>,
-  //   ).toString();
-
-  //   this.prismaService.payment.update({
-  //     where: {
-  //       id: uuidToBinary(query.vnp_TxnRef),
-  //     },
-  //     data: {
-  //       status: query. === '00' ? 'SUCCESS' : 'FAILED',
-  //     },
-  //   });
-
-  //   this.verifySecureHash(
-  //     queryStr,
-  //     'S337652W2K5IU1VTPQBJGK0Z387075FV',
-  //     query.vnp_SecureHash,
-  //   );
-  // }
 }

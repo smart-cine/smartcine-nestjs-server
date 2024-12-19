@@ -4,18 +4,23 @@ import { CreatePaymentDto } from './dto/CreatePayment.dto';
 import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as moment from 'moment';
-import { PaymentStatus } from '@prisma/client';
+import { PaymentStatus, Prisma } from '@prisma/client';
 import { genId } from 'src/shared/genId';
-import { binaryToUuid } from 'src/utils/uuid';
+import { binaryToUuid, uuidToBinary } from 'src/utils/uuid';
 import { VNPAYDto } from './dto/VNPAY.dto';
 import { validate, validateOrReject } from 'class-validator';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { VNPAYWalletService } from './wallet/vnpay-wallet.service';
+import { RedisService } from 'src/redis/redis.service'
+import { PickseatStatus } from 'src/pickseat/constants/pickseat.constant'
+
+
 
 @Injectable()
 export class PaymentService {
   constructor(
     private configService: ConfigService,
+    private redisService: RedisService,
     private prismaService: PrismaService,
     private vnpayWalletService: VNPAYWalletService,
   ) {}
@@ -25,10 +30,20 @@ export class PaymentService {
     account: TAccountRequest,
     ip: string,
   ) {
+    const conditions: Prisma.PerformWhereUniqueInput = {
+      id: body.perform_id,
+      room: {
+        cinema: {
+          banks: {
+            some: {
+              type: body.type,
+            },
+          },
+        },
+      }
+    };
     const perform = await this.prismaService.perform.findUnique({
-      where: {
-        id: body.perform_id,
-      },
+      where: conditions,
       select: {
         room: {
           select: {
@@ -43,9 +58,7 @@ export class PaymentService {
                       },
                     },
                   },
-                  where: {
-                    type: body.type,
-                  },
+                  where: conditions.room?.cinema?.banks?.some,
                 },
               },
             },
@@ -54,7 +67,6 @@ export class PaymentService {
         price: true,
       },
     });
-    console.log(perform);
     if (!perform?.room.cinema.banks[0]) {
       throw new Error('Bank not found');
     }
@@ -72,12 +84,57 @@ export class PaymentService {
 
     const business_bank_id = perform.room.cinema.banks[0].business_bank_id;
     const data = perform.room.cinema.banks[0].bank.data;
-    const validated = plainToInstance(VNPAYDto, data);
+    const validated = plainToInstance(VNPAYDto, data); // Validate data from bank
     await validateOrReject(validated);
 
+    const scan = await this.redisService.sendCommand<[string, string[]]>([
+      'SCAN',
+      '0',
+      'MATCH',
+      `pickseat:${binaryToUuid(body.perform_id)}:${binaryToUuid(account.id)}`,
+    ]);
+
+    const picking_seats = (
+      await Promise.all(
+        scan[1].map(async (key) =>
+          this.redisService.sendCommand<string[]>(['SMEMBERS', key]),
+        ),
+      )
+    )
+      .flat()
+      .map((id) => ({
+        id,
+        status: PickseatStatus.PENDING,
+      }));
+
+    const seats = await this.prismaService.cinemaLayoutSeat.findMany({
+      where: {
+        id: {
+          in: picking_seats.map((seat) => uuidToBinary(seat.id)),
+        },
+      },
+      select: {
+        id: true,
+        group: {
+          select: {
+            price: true,
+          },
+        }
+      },
+    });
+    const seatPriceMap = seats.reduce<Record<string, number>>((acc, seat) => {
+      acc[binaryToUuid(seat.id)] = seat.group?.price?.toNumber() ?? 0;
+      return acc;
+    }, {});
+
     const id = genId();
-    const amount = perform.price.toNumber() + items.reduce((acc, item) => acc + item.price.toNumber(), 0);
-    console.log("Am,ount", amount, items.reduce((acc, item) => acc + item.price.toNumber(), 0));
+    const seatsPrice = picking_seats.reduce((acc, seat) => acc + seatPriceMap[seat.id] + perform.price.toNumber(), 0);
+    const itemsPrice = items.reduce((acc, item) => acc + item.price.toNumber(), 0);
+    const totalMoney = seatsPrice + itemsPrice;
+    
+    console.log('seatsPrice', seatsPrice);
+    console.log('itemsPrice', itemsPrice);
+    console.log('totalMoney', totalMoney);
 
     await this.prismaService.payment.createMany({
       data: {
@@ -95,7 +152,7 @@ export class PaymentService {
     return this.vnpayWalletService.createPayment({
       id: id,
       ip: ip,
-      amount: amount,
+      amount: totalMoney,
       data: validated,
     });
   }
