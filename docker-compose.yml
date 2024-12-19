@@ -1,0 +1,17 @@
+version: "3"
+services:
+  nestjs-server:
+    container_name: smartcine-nestjs-server
+    restart: on-failure:3
+    networks:
+      - smartcine-network
+    build:
+      context: . # use the current directory as the build contexts
+      dockerfile: Dockerfile
+    ports:
+      - 9995:9995
+    environment:
+      DATABASE_URL: mysql://root:dbsmartcinedinhvl@db:3306/smartcine
+networks:
+  smartcine-network:
+    external: true
