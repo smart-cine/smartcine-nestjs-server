@@ -11,7 +11,7 @@ import {
 } from 'src/pagination/pagination.util';
 import { TAccountRequest } from 'src/account/decorators/AccountRequest.decorator';
 import { OwnershipService } from 'src/ownership/ownership.service';
-import { BusinessRole } from '@prisma/client';
+import { BusinessRole, Prisma } from '@prisma/client';
 
 @Injectable()
 export class CinemaProviderService {
@@ -34,14 +34,22 @@ export class CinemaProviderService {
   }
 
   async getItems(query: QueryCinemaProviderDto) {
-    const conditions = {};
+    const conditions: Prisma.CinemaProviderWhereInput = {
+      
+    };
 
     const [items, pagination] = genPaginationResponse({
       items: await this.prismaService.cinemaProvider.findMany({
-        ...genPaginationParams(query),
-        ...conditions,
+        ...genPaginationParams(query, conditions),
+        include: {
+          ratings: {
+            select: {
+              score: true,
+            },
+          },
+        }
       }),
-      total: await this.prismaService.cinemaProvider.count({ ...conditions }),
+      total: await this.prismaService.cinemaProvider.count({where: conditions}),
       query,
     });
 
@@ -63,6 +71,12 @@ export class CinemaProviderService {
         cinema_count: cinema_counts.find(
           (count) => count.cinema_provider_id.equals(item.id),
         )?._count.id || 0,
+        rating: {
+          score:
+            item.ratings.reduce((acc, curr) => acc + curr.score, 0) /
+              item.ratings.length || 0,
+          count: item.ratings.length,
+        },
       })),
       pagination,
     };
