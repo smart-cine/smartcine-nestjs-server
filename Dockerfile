@@ -42,4 +42,4 @@ EXPOSE 9995
 
 ENV PORT 9995
 
-CMD ["bun", "run", "start:prod"]
+CMD ["node", "dist/main"]
