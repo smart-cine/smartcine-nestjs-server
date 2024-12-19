@@ -20,13 +20,13 @@ datasource db {
 model Account {
   id Bytes @id @db.Binary(16)
 
-  email    String      @unique @db.VarChar(100)
-  password String      @db.VarChar(100)
+  email    String  @unique @db.VarChar(255)
+  password String  @db.VarChar(60)
   role     AccountRole
-  name     String      @db.VarChar(255)
+  name     String  @db.VarChar(100)
   avatar_url String     @db.VarChar(2083)
 
-  payment          Payment[]
+  payments          Payment[]
   pickseats        Pickseat[]
   ratings          Rating[]
   comments         Comment[]
@@ -34,6 +34,7 @@ model Account {
   user_account     UserAccount?
 
   @@map("account")
+  @@index([email]) // for login purpose
 }
 
 model UserAccount {
@@ -69,6 +70,8 @@ model Item {
   cinema   Cinema            @relation(fields: [cinema_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("item")
+  @@index([parent_id])
+  @@index([cinema_id])
 }
 
 model Tag {
@@ -84,7 +87,7 @@ model Film {
   cinema_provider_id Bytes @db.Binary(16) // Which cinema provider provide this film?
 
   title          String   @db.VarChar(255)
-  director       String   @db.VarChar(50)
+  director       String   @db.VarChar(100)
   description    String   @db.Text
   release_date   DateTime @db.Timestamp(0)
   country        String   @db.VarChar(50)
@@ -102,6 +105,7 @@ model Film {
   cinema_provider CinemaProvider @relation(fields: [cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("film")
+  @@index([cinema_provider_id])
 }
 
 model Pickseat {
@@ -115,8 +119,11 @@ model Pickseat {
   perform     Perform          @relation(fields: [perform_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   layout_seat CinemaLayoutSeat @relation(fields: [layout_seat_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@unique([account_id, perform_id, layout_seat_id]) // One account cannot pick same seat, one seat can be picked by many people so we dont unique [perform_id, code] here
   @@map("pickseat")
+  @@unique([account_id, perform_id, layout_seat_id]) // One account cannot pick same seat, one seat can be picked by many people so we dont unique [perform_id, code] here
+  @@index([account_id])
+  @@index([perform_id])
+  @@index([layout_seat_id])
 }
 
 model Perform {
@@ -136,6 +143,8 @@ model Perform {
   room      CinemaRoom @relation(fields: [cinema_room_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("perform")
+  @@index([film_id])
+  @@index([cinema_room_id])
 }
 
 model Payment {
@@ -156,6 +165,9 @@ model Payment {
   business_bank BusinessBank      @relation(fields: [business_bank_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("payment")
+  @@index([account_id])
+  @@index([perform_id])
+  @@index([business_bank_id])
 }
 
 model BusinessBank {
@@ -170,6 +182,7 @@ model BusinessBank {
   cinemas         BusinessBankOnCinema[]
 
   @@map("businessbank")
+  @@index([cinema_provider_id])
 }
 
 model CinemaProvider {
@@ -203,6 +216,7 @@ model Cinema {
   provider CinemaProvider         @relation(fields: [cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("cinema")
+  @@index([cinema_provider_id])
 }
 
 model CinemaRoom {
@@ -216,6 +230,7 @@ model CinemaRoom {
   performs Perform[]
 
   @@map("cinemaroom")
+  @@index([cinema_id])
 }
 
 model CinemaLayout {
@@ -232,6 +247,8 @@ model CinemaLayout {
   layout_seats  CinemaLayoutSeat[]
 
   @@map("cinemalayout")
+  @@index([cinema_provider_id])
+  @@index([cinema_room_id])
 }
 
 model CinemaLayoutGroup {
@@ -239,13 +256,14 @@ model CinemaLayoutGroup {
   cinema_layout_id Bytes @db.Binary(16)
 
   name  String  @db.VarChar(255)
-  color Int     @db.Int
+  color_code  String     @db.VarChar(7) // hex color
   price Decimal @db.Decimal(10, 2)
 
   layout       CinemaLayout       @relation(fields: [cinema_layout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   layout_seats CinemaLayoutSeat[]
 
   @@map("cinemalayoutgroup")
+  @@index([cinema_layout_id])
 }
 
 model CinemaLayoutSeat {
@@ -263,6 +281,8 @@ model CinemaLayoutSeat {
 
   // @@unique([cinema_layout_id, code]) // One layout can only have one seat with same code
   @@map("cinemalayoutseat")
+  @@index([cinema_layout_id])
+  @@index([group_id])
 }
 
 model Comment {
@@ -283,6 +303,10 @@ model Comment {
   dest_cinema_provider CinemaProvider? @relation("CommentToCinemaProvider", fields: [dest_cinema_provider_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("comment")
+  @@index([account_id])
+  @@index([dest_film_id])
+  @@index([dest_comment_id])
+  @@index([dest_cinema_provider_id])
 }
 
 model Rating {
@@ -300,11 +324,16 @@ model Rating {
   dest_film            Film?           @relation("RatingToFilm", fields: [dest_film_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   dest_comment         Comment?        @relation("RatingToComment", fields: [dest_comment_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  // One dest can only have one rating from same account
+  @@map("rating")
+  // One dest can only have one rating (cinema_provider, film, comment) from same account
   @@unique([account_id, dest_cinema_provider_id])
   @@unique([account_id, dest_film_id])
   @@unique([account_id, dest_comment_id])
-  @@map("rating")
+  // indexing all foreign key
+  @@index([account_id])
+  @@index([dest_cinema_provider_id])
+  @@index([dest_film_id])
+  @@index([dest_comment_id])
 }
 
 model OwnershipTree {
@@ -322,8 +351,9 @@ model Ownership {
 
   business_account BusinessAccount @relation(fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([owner_id, item_id])
   @@map("_business_ownership")
+  @@id([owner_id, item_id])
+  @@index([item_id])
 }
 
 model FilmsOnTags {
@@ -333,8 +363,9 @@ model FilmsOnTags {
   film Film @relation(fields: [film_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   tag  Tag  @relation(fields: [tag_id], references: [name], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([film_id, tag_id])
   @@map("_film_tag")
+  @@id([film_id, tag_id])
+  @@index([tag_id])
 }
 
 model ItemsOnPayments {
@@ -357,16 +388,17 @@ model BusinessBankOnCinema {
   bank   BusinessBank @relation(fields: [business_bank_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   cinema Cinema       @relation(fields: [cinema_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([cinema_id, type])
   @@map("_bank_cinema")
+  @@id([cinema_id, type])
+  @@index([business_bank_id])
 }
 
 model RoleToFeature {
   role    BusinessRole
   feature FeatureFlag
 
-  @@id([role, feature])
   @@map("_role_feature")
+  @@id([role, feature])
 }
 
 enum CommentType {
