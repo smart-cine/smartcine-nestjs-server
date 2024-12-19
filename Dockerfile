@@ -10,9 +10,6 @@ WORKDIR /app
 # Install dependencies based on the preferred package manager
 COPY package.json bun.lockb* ./
 COPY ./prisma/* ./prisma/
-RUN curl -fsSL https://bun.sh/install | bash
-RUN export BUN_INSTALL="$HOME/.bun" 
-RUN export PATH="$BUN_INSTALL/bin:$PATH" 
 RUN if [ -f bun.lockb ]; then bun install --frozen-lockfile && bun run prisma:generate; \
   else echo "Lockfile not found." && exit 1; \
   fi
