@@ -30,13 +30,13 @@ RUN if [ -f bun.lockb ]; then bun run build; \
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 9995
 
-ENV PORT 9995
+ENV PORT=9995
 
-CMD ["node", "/app/dist/src/main"]
+CMD ["node", "/app/dist/src/main.js"]

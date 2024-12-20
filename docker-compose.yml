@@ -10,8 +10,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - 9995:9995
-    environment:
-      DATABASE_URL: mysql://root:dbsmartcinedinhvl@db:3306/smartcine
 networks:
   smartcine-network:
     external: true
