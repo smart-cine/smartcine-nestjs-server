@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { PaymentController } from '../src/modules/payment/payment.controller';
 import {
   PrismaClient,
